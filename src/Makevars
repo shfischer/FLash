@@ -1,0 +1,38 @@
+PKG_CXXFLAGS = -I../inst/include
+PKG_CFLAGS = -I../inst/include
+PKG_LIBS = $(SUBLIBS)
+
+#CFLAGS=$(PKG_CPPFLAGS) -O3
+#ALL_CPPFLAGS=$(PKG_CPPFLAGS)
+#ALL_CFLAGS=-O3
+#ALL_CXXFLAGS=-O3
+
+MkInclude = $(RHOME)/etc/Makeconf
+CFLAGS = -O0 -Wall
+CXXFLAGS = -O0 -Wall -fPIC
+
+SOURCES_C = FLCoreClasses.cpp FLashDLL.cpp FLash-VPA.cpp flc.cpp flc_adolc.cpp flquant_pointer.cpp fwd.cpp fwdFLStock.cpp
+
+OBJECTS = $(SOURCES_C:.cpp=.o)
+
+SUBDIRS = adolc
+SUBLIBS = $(SUBDIRS:=.a)
+
+all: $(SHLIB)
+$(SHLIB): sublibs $(OBJECTS)
+
+sublibs: subclean
+	@for d in $(SUBDIRS); do \
+	  (cd $${d} && CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" MkInclude="$(MkInclude)" $(MAKE) library) || exit 1; \
+	done
+
+clean: subclean
+	@-rm -rf .libs _libs
+	@-rm -f *.o $(SHLIB)
+
+subclean:
+	@-rm -f *.a
+	@for d in $(SUBDIRS); do \
+	  (cd $${d} && Mkinclude="$(MKinclude)" $(MAKE) clean) || exit 1; \
+	done
+

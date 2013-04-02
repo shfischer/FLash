@@ -1,0 +1,16 @@
+useDynLib("FLash")
+import("FLCore")
+export("SRchar2code")
+exportClasses("fwdControl")
+exportMethods(
+  "harvest",
+  "computeHarvest",
+  "fwd",
+  "fwdControl",
+  "+",
+  "show",
+  "setSR")
+export(
+  "CheckNor1",
+  "flqCon",
+  "flqVar")
