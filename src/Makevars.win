@@ -2,6 +2,7 @@
 # Looks same as *nix one
 PKG_CXXFLAGS = -I../inst/include
 PKG_CFLAGS = -I../inst/include
+PKG_LIBS = $(SUBLIBS)
 
 #CFLAGS=$(PKG_CPPFLAGS) -O3
 #ALL_CPPFLAGS=$(PKG_CPPFLAGS)
