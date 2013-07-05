@@ -631,6 +631,7 @@ void FLStock::Init(SEXP x)
    harvest_spwn.Init(GET_SLOT(x, install("harvest.spwn"))); 
    m_spwn.Init(      GET_SLOT(x, install("m.spwn"))); 
 
+   niters=1;
    niters= __max(niters,catch_.niters());         
    niters= __max(niters,catch_n.niters());       
    niters= __max(niters,catch_wt.niters());      

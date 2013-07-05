@@ -2,7 +2,7 @@
 # FLash/R/fwd.R
 # Copyright 2003-2007 FLR Team. Distributed under the GPL 2 or later
 # Maintainer: Finlay Scott, Cefas
-# Last Change: 11 May 2010 13:33
+# Last Change: Thu Jul 04, 2013 at 11:21 AM +0200
 # $Id: fwd.R 1797 2012-12-15 11:11:41Z lauriekell $
 
 ## fwd(FLStock)
@@ -93,7 +93,8 @@ setMethod("fwd", signature(object="FLStock",ctrl="fwdControl"),
       dmns$age=1
       maxf=FLQuant(maxF, dimnames=dmns)}
    else maxf=maxF
-    x<-.Call("fwd_adolc_FLStock", object, matrixTarget(ctrl@target), ctrl@trgtArray, yrs, sr$model, sr$params, sr$residuals, sr$residuals.mult[[1]], availability,maxF=maxf)
+    
+	 x<-.Call("fwd_adolc_FLStock", object, matrixTarget(ctrl@target), ctrl@trgtArray, yrs, sr$model, sr$params, sr$residuals, sr$residuals.mult[[1]], availability,maxF=maxf)
 
     if (is.numeric(x)) stop(x)
 
@@ -176,7 +177,6 @@ setMethod("fwd", signature(object="FLStock", ctrl="FLQuants"),
     function(object, ctrl,
                sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE,
                availability=NULL,maxF=2.0){    
-print(1)      
     res=FLStocks(mlply(seq(length(ctrl)),
           function(x,object,ctrl,sr,sr.residuals,sr.residuals.mult,availability,maxF) {
             fwd(object,ctrl=ctrl[[x]],quantity=names(ctrl)[x],

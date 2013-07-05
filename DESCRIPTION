@@ -4,6 +4,6 @@ Version: 2.5.0
 Author: Freddy Mercury
 Description: Saviour of the universe
 Depends: R(>= 2.15.0), FLCore(>= 2.5), methods
-Collate: fwdControl.R fwdStock.R harvest.R setSRs.R validityFLSR.R FLCoreVarCon.R fwd.R pseuco.R truncVPA.R
+Collate: fwdControl.R harvest.R setSRs.R validityFLSR.R FLCoreVarCon.R fwd.R pseuco.R truncVPA.R
 Maintainer: Prince Baron <t.dalton@arboria.ac.uk>
 License: GPL-2
