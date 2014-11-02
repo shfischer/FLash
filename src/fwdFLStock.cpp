@@ -35,7 +35,7 @@ double fwdStk::getVal(FLRConst_Target quantity,  int iyr, int iunit, int iseason
          value = stk.FbarDiscards(   iyr,  iunit, iseason, iarea, iter);
          break;
        case FLRConst_SSB:
-         value = SSB(                iyr-1,iunit, iseason, iarea, iter);
+         value = SSB(                iyr,iunit, iseason, iarea, iter);
          break;
        case FLRConst_Biomass:
          value = stk.computeStock(   iyr+1,iunit, iseason, iarea, iter);
