@@ -53,7 +53,8 @@ setMethod('setSR', signature(sr='list'),
     resYrs<-yrs[yrs %in% dimnames(sr.residuals)$year]
 
     if(!is(sr.residuals,"NULL") & !any(dimnames(sr.residuals)$year %in% yrs[1:(length(yrs)-1)])) warning("Year range of residuals is not within yrs range")
-    residuals[,resYrs]<-iter(sr.residuals[,resYrs], dimnames(residuals)$iter)
+    #residuals[,resYrs]<-iter(sr.residuals[,resYrs], dimnames(residuals)$iter)
+    residuals[,resYrs]<-sr.residuals[,resYrs]
 
 #****** Check and force iterations **********
     # Iters of stock numbers and residuals should be the same or one of them should be 1
@@ -111,6 +112,8 @@ SRchar2code<-function(strCode){
                                    "ricker"          = 3,
                                    "segreg"          = 4,
                                    "shepherd"        = 5,
+                                   "cushing"         = 6,
+                                   "taylor"          = 9,
                                    "bevholt.d"       = 21,
                                    "bevholt.c.a"     = 22,
                                    "bevholt.c.b"     = 23,
@@ -134,6 +137,8 @@ SRcode2char<-function(strCode){
                          "3"    = "ricker",        
                          "4"    = "segreg",        
                          "5"    = "shepherd",      
+                         "6"    = "cushing",      
+                         "9"    = "taylor",      
                          "21"   = "bevholt.d",     
                          "22"   = "bevholt.c.a",   
                          "23"   = "bevholt.c.b",   
@@ -158,6 +163,8 @@ SRParams<-function(strCode){
                                    "ricker"          = 2,
                                    "segreg"          = 2,
                                    "shepherd"        = 3,
+                                   "cushing"         = 2,
+                                   "taylor"          = 4,
                                    "bevholt.d"       = 3,
                                    "bevholt.c.a"     = 3,
                                    "bevholt.c.b"     = 3,
