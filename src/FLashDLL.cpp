@@ -77,10 +77,11 @@ extern "C" SEXPDLLExport fwd_adolc_FLStock(SEXP xStk,SEXP xTrgt,SEXP xAry,SEXP x
 extern "C" SEXPDLLExport fwd_adolc_FLBiol(SEXP xBiols, SEXP xFleets, SEXP xTrgt, SEXP xAryTrgt, SEXP xCtrl, SEXP xAryCtrl, SEXP xYrs, SEXP xDims, SEXP xSRModel,SEXP xSRParam,SEXP xSRResiduals,SEXP xMult,SEXP xAvail)    
     {
     SEXP ReturnVal = R_NilValue;
+    SEXP Rerror = NEW_LOGICAL(0);
     
    int nparam = NElemList(xSRParam);
    if (nparam<1) 
-      return false;
+      return Rerror;
 
    SEXP SRParam = PROTECT(VECTOR_ELT(xSRParam, 0));
    
@@ -128,15 +129,16 @@ extern "C" SEXPDLLExport _fwd_adolc_FLStock(SEXP xFLStock,SEXP xTrgt,SEXP xAry,S
 extern "C" SEXPDLLExport fwd_adolc_FLBiols(SEXP xBiols, SEXP xFleets, SEXP xTrgt, SEXP xAryTrgt, SEXP xCtrl, SEXP xAryCtrl, SEXP xYrs, SEXP xDims, SEXP xSRR)    
    {
    SEXP ReturnVal = R_NilValue;
+   SEXP Rerror = NEW_LOGICAL(0);
 
    if (NElemList(xBiols)<0)
-      return false;
+      return Rerror;
 
  //  if (NElemList(xBiols)!=NElemList(xSRR))
  //     return false;
 
    if (NElemList(xFleets)<0)
-      return false;
+      return Rerror;
 
    fwd fwd(xBiols, xFleets, xYrs, xDims, xSRR); //xSRModel, xSRParam, xSRResiduals, xMult);
 	
