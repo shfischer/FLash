@@ -6,10 +6,6 @@
 # $Id: fwd.R 1797 2012-12-15 11:11:41Z lauriekell $
 
 ## fwd(FLStock)
-if (!isGeneric("fwd"))
-  setGeneric("fwd", function(object, ctrl, ...)
-	  standardGeneric("fwd"))
-
 setMethod("fwd", signature(object="FLStock",ctrl="fwdControl"),
 	function(object, ctrl,
    sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE,
