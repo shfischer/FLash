@@ -6,11 +6,12 @@
 # $Id: fwd.R 1797 2012-12-15 11:11:41Z lauriekell $
 
 ## fwd(FLStock)
-setMethod("fwd", signature(object="FLStock",control="fwdControl"),
-	function(object, control,
+setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdControl"),
+	function(biols, control,
    sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE,
                availability=NULL,maxF=2.0)
-    {      
+    {
+    object <- biols
     if (is(sr,"FLBRP")) sr=list(params=params(sr),model=SRModelName(model(sr)))
     ## make sure slots have correct iters 
     if (is(sr,"FLSR")) nDim=dims(params(sr))$iter  else nDim=1
@@ -109,9 +110,10 @@ setMethod("fwd", signature(object="FLStock",control="fwdControl"),
 
     return(x)}) 
 
-setMethod("fwd", signature(object="FLStock", control="missing"),
-    function(object, sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0,...)
+setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missing"),
+    function(biols, sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0,...)
     {
+    object <- biols
     # parse ... for ctrl
     args=list(...)
 

@@ -96,7 +96,7 @@ setGeneric('validSRPar', function(object, ...)
      if (dim(res)[4]==1 & dm$season=="all")    dm$season<-dimnames(res)$season
      if (dim(res)[5]==1 & dm$area  =="unique") dm$area  <-dimnames(res)$area
 
-##bug if sr doesn´t match control
+##bug if sr doesn't match control
      res[,dimnames(sr)$year,dm$unit,dm$season,dm$area,]<-as.FLQuant(sr)
 
      return(FLPar(res))

@@ -1,12 +1,12 @@
 Package: FLash
 Title: Aaaaahhhhhhh
-Version: 2.5.3
-Date: 2017-02-08
-Author: Freddy Mercury
+Version: 2.5.4
+Date: 2017-02-15
+Author: Freddie Mercury
 Description: Saviour of the universe
 Depends:
     R(>= 2.15.0),
-    FLCore(>= 2.5),
+    FLCore(>= 2.6.0),
     methods
 Collate:
     fwdControl.R
