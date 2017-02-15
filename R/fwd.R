@@ -118,7 +118,8 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missin
     args=list(...)
 
     if("ctrl" %in% names(args)) {
-      do.call("fwd", list(biols=object, control=args[["ctrl"]], sr=sr, sr.residuals=sr.residuals, sr.residuals.mult=sr.residuals.mult, availability=availability, maxF=maxF))
+        res <- do.call("fwd", list(biols=object, control=args[["ctrl"]], sr=sr, sr.residuals=sr.residuals, sr.residuals.mult=sr.residuals.mult, availability=availability, maxF=maxF))
+        return(res)
     }
 
     if (class(args[[1]])=="FLQuant"){
