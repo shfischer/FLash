@@ -5,6 +5,13 @@
 # Last Change: Thu Jul 04, 2013 at 11:21 AM +0200
 # $Id: fwd.R 1797 2012-12-15 11:11:41Z lauriekell $
 
+# Dreadful hack to get around fwd with FLStock and fwdControl but neither argument is named
+setMethod("fwd", signature(biols="FLStock", fisheries="fwdControl", control="missing"),
+    function(biols, fisheries, sr=NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0) {
+        res <- fwd(biols=biols, control=fisheries, sr = sr, sr.residuals= sr.residuals, sr.residuals.mult = sr.residuals.mult, availability=availability, maxF=maxF)
+        return(res)
+})
+
 ## fwd(FLStock)
 setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdControl"),
 	function(biols, control,
