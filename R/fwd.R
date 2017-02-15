@@ -8,7 +8,7 @@
 ## fwd(FLStock)
 setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdControl"),
 	function(biols, control,
-   sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE,
+   sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE,
                availability=NULL,maxF=2.0)
     {
     object <- biols
@@ -111,14 +111,14 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdCon
     return(x)}) 
 
 setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missing"),
-    function(biols, sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0,...)
+    function(biols, sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0,...)
     {
     object <- biols
     # parse ... for ctrl
     args=list(...)
 
     if("ctrl" %in% names(args)) {
-      do.call("fwd", list(object=object, control=args[["ctrl"]], sr=sr, sr.residuals=sr.residuals, sr.residuals.mult=sr.residuals.mult, availability=availability, maxF=maxF))
+      do.call("fwd", list(biols=object, control=args[["ctrl"]], sr=sr, sr.residuals=sr.residuals, sr.residuals.mult=sr.residuals.mult, availability=availability, maxF=maxF))
     }
 
     if (class(args[[1]])=="FLQuant"){
@@ -151,10 +151,11 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missin
     
     return(res)})
 
-setMethod("fwd", signature(object="FLStock", control="FLQuants"),
-    function(object, control,
-               sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE,
-               availability=NULL,maxF=2.0){    
+setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuants"),
+    function(biols, control,
+               sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE,
+               availability=NULL,maxF=2.0){
+    object <- control
     res=FLStocks(mlply(seq(length(control)),
           function(x,object,control,sr,sr.residuals,sr.residuals.mult,availability,maxF) {
             fwd(object,control=control[[x]],quantity=names(control)[x],
@@ -166,11 +167,11 @@ setMethod("fwd", signature(object="FLStock", control="FLQuants"),
                                           
     return(res)})
 
-setMethod("fwd", signature(object="FLStock", control="FLQuant"),
-    function(object, control,quantity,
-               sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE,
+setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuant"),
+    function(biols, control,quantity,
+               sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE,
                availability=NULL,maxF=2.0,...)
-    {    
+    {
     control.=apply(control,1:5,mean,na.rm=TRUE)
     control.=cbind(quantity=quantity,as.data.frame(control.,drop=T))
     names(control.)[seq(dim(control.)[2])[names(control.)=="data"]]="val"
@@ -181,7 +182,7 @@ setMethod("fwd", signature(object="FLStock", control="FLQuant"),
  
     control.@trgtArray=array(c(control.@trgtArray),dim=unlist(lapply(dmns,length)),dimnames=dmns)
     
-    res=fwd(object,control=control.,
+    res=fwd(biols,control=control.,
             sr=sr,sr.residuals,sr.residuals.mult=sr.residuals.mult,
                availability=availability,maxF=maxF)  
     
