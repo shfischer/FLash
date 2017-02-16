@@ -1,7 +1,7 @@
 Package: FLash
 Title: Aaaaahhhhhhh
-Version: 2.5.4
-Date: 2017-02-15
+Version: 2.5.5
+Date: 2017-02-16
 Author: Freddie Mercury
 Description: Saviour of the universe
 Depends:
@@ -20,4 +20,4 @@ Collate:
     zzz.R
 Maintainer: Prince Baron <t.dalton@arboria.ac.uk>
 License: GPL-2
-RoxygenNote: 6.0.0
+RoxygenNote: 5.0.1

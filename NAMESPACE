@@ -5,6 +5,7 @@ exportClasses("fwdControl")
 exportMethods(
   "harvest",
   "computeHarvest",
+  "coerce",
   "fwd",
   "fwdControl",
   "+",
