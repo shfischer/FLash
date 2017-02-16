@@ -5,6 +5,7 @@
 # Last Change: Thu Jul 04, 2013 at 11:21 AM +0200
 # $Id: fwd.R 1797 2012-12-15 11:11:41Z lauriekell $
 
+
 # Dreadful hack to get around fwd with FLStock and fwdControl but neither argument is named
 setMethod("fwd", signature(biols="FLStock", fisheries="fwdControl", control="missing"),
     function(biols, fisheries, sr=NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0) {
@@ -15,9 +16,9 @@ setMethod("fwd", signature(biols="FLStock", fisheries="fwdControl", control="mis
 ## fwd(FLStock)
 setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdControl"),
 	function(biols, control,
-   sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE,
-               availability=NULL,maxF=2.0)
+   sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0)
     {
+
     object <- biols
     if (is(sr,"FLBRP")) sr=list(params=params(sr),model=SRModelName(model(sr)))
     ## make sure slots have correct iters 
@@ -120,10 +121,12 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdCon
 setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missing"),
     function(biols, sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0,...)
     {
+
     object <- biols
     # parse ... for ctrl
     args=list(...)
 
+    # Hack for changing the argument name from 'ctrl' to 'control'
     if("ctrl" %in% names(args)) {
         res <- do.call("fwd", list(biols=object, control=args[["ctrl"]], sr=sr, sr.residuals=sr.residuals, sr.residuals.mult=sr.residuals.mult, availability=availability, maxF=maxF))
         return(res)
@@ -131,11 +134,13 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missin
 
     if (class(args[[1]])=="FLQuant"){
       control=args[[1]]
-      quantity=names(args)[[1]]}
+      quantity=names(args)[[1]]
+    }
   
     control.=apply(control,1:5,mean,na.rm=TRUE)
    
-    control.=cbind(quantity=quantity,as.data.frame(control.,drop=T))
+    control.=cbind(quantity=quantity,as.data.frame(control.))
+
     names(control.)[seq(dim(control.)[2])[names(control.)=="data"]]="val"
     
     control.=fwdControl(control.)
@@ -152,10 +157,8 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missin
        if (length(dimnames(sr.residuals)$iter)==1)
          sr.residuals=propagate(sr.residuals,nits)
        }
-       
-    res=fwd(object,control=control.,
-            sr=sr,sr.residuals,sr.residuals.mult=sr.residuals.mult,
-               availability=availability,maxF=maxF)  
+    res=fwd(object, control=control.,
+            sr=sr,sr.residuals = sr.residuals, sr.residuals.mult = sr.residuals.mult, availability=availability,maxF=maxF)  
     
     return(res)})
 
@@ -190,9 +193,8 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuan
  
     control.@trgtArray=array(c(control.@trgtArray),dim=unlist(lapply(dmns,length)),dimnames=dmns)
     
-    res=fwd(biols,control=control.,
-            sr=sr,sr.residuals,sr.residuals.mult=sr.residuals.mult,
-               availability=availability,maxF=maxF)  
+    res=fwd(biols, control=control.,
+            sr=sr, sr.residuals=sr.residuals, sr.residuals.mult=sr.residuals.mult, availability=availability, maxF=maxF)  
     
     return(res)})
 
