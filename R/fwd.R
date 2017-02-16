@@ -98,7 +98,9 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdCon
       maxf=FLQuant(maxF, dimnames=dmns)}
    else maxf=maxF
     
-	 x<-.Call("fwd_adolc_FLStock", object, matrixTarget(control@target), control@trgtArray, yrs, sr$model, sr$params, sr$residuals, sr$residuals.mult[[1]], availability,maxF=maxf)
+	 x<-.Call("fwd_adolc_FLStock", object, matrixTarget(control@target),
+  control@trgtArray, yrs, sr$model, sr$params, sr$residuals, sr$residuals.mult[[1]],
+  availability,maxF=maxf, PACKAGE="FLash")
 
     if (is.numeric(x)) stop(x)
 
@@ -196,3 +198,43 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuan
     
     return(res)})
 
+# fwd(FLStock, missing, missing, ...) {{{
+
+setMethod("fwd", signature(biols="FLStock", fisheries="ANY",
+  control="missing"),
+  
+  function(biols, fisheries=missing, ..., sr=NULL, sr.residuals=FLQuant(1, dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE) {
+    
+    # PARSE ...
+    args <- list(...)
+    .qlevels <- quantityNms()
+    
+    # HACK: deal with f assigned to fisheries, might fail
+    if(!missing(fisheries)) {
+
+      if(!is(fisheries, "FLQuant"))
+        stop("targets can only be of class FLQuant if no fwdControl is provided")
+      narg <- names(sys.calls()[[1]])
+      narg <- narg[!narg %in% c("", "biols", "sr",
+        grep("^[f].*", .qlevels, value=TRUE, invert=TRUE))]
+      args[[narg]] <- fisheries
+    }
+    
+    # Does ... exist?
+    if(length(args) < 1)
+      stop("No fwdControl provided and no FLQuant targets given, cannot do anything!")
+
+    # NAMES in qlevels?
+    if(any(!names(args) %in% .qlevels))
+      stop(paste0("Names of input FLQuant(s) do not match current allowed targets: ",
+            paste(.qlevels, collapse=", ")))
+
+    args <- FLQuants(args)
+
+    # COERCE to fwdControl
+    control <- as(args, "fwdControl")
+    
+    return(fwd(biols=biols, control=control, sr=sr, sr.residuals=sr.residuals,
+      sr.residuals.mult=sr.residuals.mult, availability=NULL,maxF=2.0))
+  }
+) # }}}
