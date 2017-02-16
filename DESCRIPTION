@@ -8,6 +8,7 @@ Depends:
     R(>= 2.15.0),
     FLCore(>= 2.6.0),
     methods
+Additional_repositories: http://flr-project.org/R
 Collate:
     fwdControl.R
     harvest.R
