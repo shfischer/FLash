@@ -6,14 +6,15 @@
 # $Id: fwd.R 1797 2012-12-15 11:11:41Z lauriekell $
 
 
+# fwd(FLStock, fwdControl, missing) {{{
 # Dreadful hack to get around fwd with FLStock and fwdControl but neither argument is named
 setMethod("fwd", signature(biols="FLStock", fisheries="fwdControl", control="missing"),
     function(biols, fisheries, sr=NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0) {
         res <- fwd(biols=biols, control=fisheries, sr = sr, sr.residuals= sr.residuals, sr.residuals.mult = sr.residuals.mult, availability=availability, maxF=maxF)
         return(res)
-})
+}) # }}}
 
-## fwd(FLStock)
+# fwd(FLStock, missing, fwdControl) {{{
 setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdControl"),
 	function(biols, control,
    sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0)
@@ -118,8 +119,9 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdCon
     if (!is.null(endYr)) x <- window(x, end=endYr-1)
       #object =qapply(x, FLCore::window, end=endYr-1)
 
-    return(x)}) 
+    return(x)}) # }}}
 
+# fwd(FLStock, missing, missing) {{{
 setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missing"),
     function(biols, sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0,...)
     {
@@ -162,8 +164,9 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missin
     res=fwd(object, control=control.,
             sr=sr,sr.residuals = sr.residuals, sr.residuals.mult = sr.residuals.mult, availability=availability,maxF=maxF)  
     
-    return(res)})
+    return(res)}) # }}}
 
+# fwd(FLStock, missing, FLQuants) {{{
 setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuants"),
     function(biols, control,
                sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE,
@@ -178,8 +181,9 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuan
                     sr=sr,sr.residuals=sr.residuals,sr.residuals.mult=sr.residuals.mult,
                     availability=availability,maxF=maxF))                          
                                           
-    return(res)})
+    return(res)}) # }}}
 
+# fwd(FLStock, missing, FLQuant) {{{
 setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuant"),
     function(biols, control,quantity,
                sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE,
@@ -198,9 +202,9 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuan
     res=fwd(biols, control=control.,
             sr=sr, sr.residuals=sr.residuals, sr.residuals.mult=sr.residuals.mult, availability=availability, maxF=maxF)  
     
-    return(res)})
+    return(res)}) # }}}
 
-# fwd(FLStock, missing, missing, ...) {{{
+# fwd(FLStock, ANY, missing, ...) {{{
 
 setMethod("fwd", signature(biols="FLStock", fisheries="ANY",
   control="missing"),
