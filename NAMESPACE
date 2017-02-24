@@ -1,5 +1,16 @@
 useDynLib("FLash")
 import("FLCore")
+importFrom("methods",
+  "as", 
+  "getSlots",
+  "is", 
+  "new", 
+  "slot", 
+  "slot<-",
+  "validObject")
+importFrom("stats",
+  "df", 
+  "mad")
 export("SRchar2code")
 exportClasses("fwdControl")
 exportMethods(
