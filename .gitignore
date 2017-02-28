@@ -1,0 +1,7 @@
+src/*.o
+src/adolc/*.o
+src/adolc/drivers/*.o
+src/adolc/sparse/*.o
+src/adolc/tapedoc/*.o
+src/*.so
+src/*.a
