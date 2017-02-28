@@ -8,19 +8,18 @@
 
 # fwd(FLStock, fwdControl, missing) {{{
 # Dreadful hack to get around fwd with FLStock and fwdControl but neither argument is named
-setMethod("fwd", signature(biols="FLStock", fisheries="fwdControl", control="missing"),
-    function(biols, fisheries, sr=NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0) {
-        res <- fwd(biols=biols, control=fisheries, sr = sr, sr.residuals= sr.residuals, sr.residuals.mult = sr.residuals.mult, availability=availability, maxF=maxF)
+setMethod("fwd", signature(object="FLStock", fishery="fwdControl", control="missing"),
+    function(object, fishery, sr=NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0) {
+        res <- fwd(object=object, control=fishery, sr = sr, sr.residuals= sr.residuals, sr.residuals.mult = sr.residuals.mult, availability=availability, maxF=maxF)
         return(res)
 }) # }}}
 
 # fwd(FLStock, missing, fwdControl) {{{
-setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdControl"),
-	function(biols, control,
-   sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0)
+setMethod("fwd", signature(object="FLStock", fishery="missing", control="fwdControl"),
+	function(object, control,
+   sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0)
     {
 
-    object <- biols
     if (is(sr,"FLBRP")) sr=list(params=params(sr),model=SRModelName(model(sr)))
     ## make sure slots have correct iters 
     if (is(sr,"FLSR")) nDim=dims(params(sr))$iter  else nDim=1
@@ -122,17 +121,16 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="fwdCon
     return(x)}) # }}}
 
 # fwd(FLStock, missing, missing) {{{
-setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missing"),
-    function(biols, sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0,...)
+setMethod("fwd", signature(object="FLStock", fishery="missing", control="missing"),
+    function(object, sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE, availability=NULL,maxF=2.0,...)
     {
 
-    object <- biols
     # parse ... for ctrl
     args=list(...)
 
     # Hack for changing the argument name from 'ctrl' to 'control'
     if("ctrl" %in% names(args)) {
-        res <- do.call("fwd", list(biols=object, control=args[["ctrl"]], sr=sr, sr.residuals=sr.residuals, sr.residuals.mult=sr.residuals.mult, availability=availability, maxF=maxF))
+        res <- do.call("fwd", list(object=object, control=args[["ctrl"]], sr=sr, sr.residuals=sr.residuals, sr.residuals.mult=sr.residuals.mult, availability=availability, maxF=maxF))
         return(res)
     }
 
@@ -167,11 +165,10 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="missin
     return(res)}) # }}}
 
 # fwd(FLStock, missing, FLQuants) {{{
-setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuants"),
-    function(biols, control,
-               sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE,
-               availability=NULL,maxF=2.0){
-    object <- control
+setMethod("fwd", signature(object="FLStock", fishery="missing", control="FLQuants"),
+    function(object, control, sr =NULL,
+      sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE,
+      availability=NULL,maxF=2.0){
     res=FLStocks(mlply(seq(length(control)),
           function(x,object,control,sr,sr.residuals,sr.residuals.mult,availability,maxF) {
             fwd(object,control=control[[x]],quantity=names(control)[x],
@@ -184,9 +181,9 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuan
     return(res)}) # }}}
 
 # fwd(FLStock, missing, FLQuant) {{{
-setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuant"),
-    function(biols, control,quantity,
-               sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE,
+setMethod("fwd", signature(object="FLStock", fishery="missing", control="FLQuant"),
+    function(object, control,quantity,
+               sr =NULL, sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE,
                availability=NULL,maxF=2.0,...)
     {
     control.=apply(control,1:5,mean,na.rm=TRUE)
@@ -199,31 +196,31 @@ setMethod("fwd", signature(biols="FLStock", fisheries="missing", control="FLQuan
  
     control.@trgtArray=array(c(control.@trgtArray),dim=unlist(lapply(dmns,length)),dimnames=dmns)
     
-    res=fwd(biols, control=control.,
+    res=fwd(object, control=control.,
             sr=sr, sr.residuals=sr.residuals, sr.residuals.mult=sr.residuals.mult, availability=availability, maxF=maxF)  
     
     return(res)}) # }}}
 
 # fwd(FLStock, ANY, missing, ...) {{{
 
-setMethod("fwd", signature(biols="FLStock", fisheries="ANY",
+setMethod("fwd", signature(object="FLStock", fishery="ANY",
   control="missing"),
   
-  function(biols, fisheries=missing, ..., sr=NULL, sr.residuals=FLQuant(1, dimnames=dimnames(rec(biols))), sr.residuals.mult=TRUE) {
+  function(object, fishery=missing, ..., sr=NULL, sr.residuals=FLQuant(1, dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE) {
     
     # PARSE ...
     args <- list(...)
     .qlevels <- quantityNms()
     
-    # HACK: deal with f assigned to fisheries, might fail
-    if(!missing(fisheries)) {
+    # HACK: deal with f assigned to fishery, might fail
+    if(!missing(fishery)) {
 
-      if(!is(fisheries, "FLQuant"))
+      if(!is(fishery, "FLQuant"))
         stop("targets can only be of class FLQuant if no fwdControl is provided")
       narg <- names(sys.calls()[[1]])
-      narg <- narg[!narg %in% c("", "biols", "sr",
+      narg <- narg[!narg %in% c("", "object", "sr",
         grep("^[f].*", .qlevels, value=TRUE, invert=TRUE))]
-      args[[narg]] <- fisheries
+      args[[narg]] <- fishery
     }
     
     # Does ... exist?
@@ -240,7 +237,7 @@ setMethod("fwd", signature(biols="FLStock", fisheries="ANY",
     # COERCE to fwdControl
     control <- as(args, "fwdControl")
     
-    return(fwd(biols=biols, control=control, sr=sr, sr.residuals=sr.residuals,
+    return(fwd(object=object, control=control, sr=sr, sr.residuals=sr.residuals,
       sr.residuals.mult=sr.residuals.mult, availability=NULL,maxF=2.0))
   }
 ) # }}}
