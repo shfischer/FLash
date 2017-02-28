@@ -203,21 +203,19 @@ setMethod("fwd", signature(object="FLStock", fishery="missing", control="FLQuant
 
 # fwd(FLStock, ANY, missing, ...) {{{
 
-setMethod("fwd", signature(object="FLStock", fishery="ANY",
-  control="missing"),
-  
-  function(object, fishery=missing, ..., sr=NULL, sr.residuals=FLQuant(1, dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE) {
+setMethod("fwd", signature(object="FLStock", fishery="ANY", control="missing"),
+  function(object, fishery=missing, ..., sr=NULL,
+    sr.residuals=FLQuant(1, dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE) {
     
     # PARSE ...
     args <- list(...)
     .qlevels <- quantityNms()
-    
     # HACK: deal with f assigned to fishery, might fail
     if(!missing(fishery)) {
 
       if(!is(fishery, "FLQuant"))
         stop("targets can only be of class FLQuant if no fwdControl is provided")
-      narg <- names(sys.calls()[[1]])
+      narg <- names(sys.calls()[[length(sys.calls())-1]])
       narg <- narg[!narg %in% c("", "object", "sr",
         grep("^[f].*", .qlevels, value=TRUE, invert=TRUE))]
       args[[narg]] <- fishery
