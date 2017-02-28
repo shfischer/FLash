@@ -216,7 +216,7 @@ setMethod("fwd", signature(object="FLStock", fishery="ANY", control="missing"),
       if(!is(fishery, "FLQuant"))
         stop("targets can only be of class FLQuant if no fwdControl is provided")
       narg <- names(sys.calls()[[length(sys.calls())-1]])
-      narg <- narg[!narg %in% c("", "object", "sr",
+      narg <- narg[!narg %in% c("", "object", "sr", "sr.residuals", "sr.residuals.mult",
         grep("^[f].*", .qlevels, value=TRUE, invert=TRUE))]
       args[[narg]] <- fishery
     }

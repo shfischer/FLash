@@ -345,12 +345,16 @@ chkTargetQuantity <- function(target,object)
 setAs("FLQuants", "fwdControl",
   function(from) {
 		
+
     # CONVERT
     target <- as.data.frame(from)[,c('year', 'iter', 'data', 'qname')]
     names(target)[3:4] <- c('val', 'quantity')
 
+    # dims and check
+    nits <- length(unique(target$iter))
+
 		# ITERS
-		if(max(as.numeric(target$iter)) == 1) {
+		if(nits == 1) {
 
       target <- cbind(target[,-2], fishery=as.numeric(NA), catch=as.numeric(NA),
         biol=1)
@@ -358,16 +362,13 @@ setAs("FLQuants", "fwdControl",
       return(fwdControl(target))
 		} else {
 
-			target <- cbind(df[df$iter == df$iter[1],][,c('year', 'data')], quant=quant)
-			names(target)[grep('data', names(target))] <- 'value'
+      dft <- target[target$iter == target$iter[1],][,c('year', 'val', 'quantity')]
 
-			arrt <- array(NA, dim=c(dim(target)[1], 3, dim(flq)[6]),
-				dimnames=list(seq(dim(target)[1]), c('min', 'value', 'max'), iter=dimnames(flq)$iter))
-			arrt[,'val',] <- c(flq)
+			arrt <- array(NA, dim=c(dim(dft)[1], 3, nits),
+				dimnames=list(seq(dim(dft)[1]), c('min', 'val', 'max'), iter=unique(target$iter)))
+			arrt[,'val',] <- target$val
       
-      target <- cbind(target, fishery=as.numeric(NA), catch=as.numeric(NA),
-        biol=1)
-			return(fwdControl(target, trgtArray=arrt))
+			return(fwdControl(dft, trgtArray=arrt))
 		}
 	stop('Conversion unsucessful')
 } ) # }}}
