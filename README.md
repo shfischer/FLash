@@ -24,7 +24,6 @@ or download from the [FLash releases page](https://github.com/flr/FLash/releases
 ## Build Status
 [![Travis Build Status](https://travis-ci.org/flr/FLash.svg?branch=master)](https://travis-ci.org/flr/FLash)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/flr/FLash?branch=master&svg=true)](https://ci.appveyor.com/project/flr/FLash)
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/FLash)](https://cran.r-project.org/package=FLash)
 
 ## Releases
 - [All releases](https://github.com/flr/FLash/releases/)
