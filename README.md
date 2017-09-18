@@ -2,8 +2,8 @@
 # FLash
 - Version: 2.5.8
 - Date: 2017-08-28
-- Author: Laurie Kell <laurie@kell.es>
-- Maintainer: Laurie Kell <laurie@kell.es>
+- Author: Laurie Kell <laurie@seaplusplus.co.uk>
+- Maintainer: Laurie Kell <laurie@seaplusplus.co.uk>
 - Repository: <https://github.com/flr/FLash/>
 - Bug reports: <https://github.com/flr/FLash/issues>
 
