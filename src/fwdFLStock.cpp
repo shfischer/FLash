@@ -692,15 +692,23 @@ SEXP fwdStk::run(SEXP xTrgt, SEXP xAry)
           r[0]=1.0;
           function(_Tape,n,n,indep,r);
           int NIters=0;
+          //Rprintf("Solving\n");
           while (norm(r,n) > 1e-12 && norm(indep,n) < 100 && NIters++<50)
               {
+              // r = y, indep = x
+              // where y is error: the difference between target and actual - we want this to be 0
               function(_Tape,n,n,indep,r);
 
               //jac_solv(_Tape,n,indep,r,0,2);
+              // solve Jac * (xn - xn+1) = y
+              // r going in y
+              // r coming out = (xn - xn+1)
+              //Rprintf("x: %f y: %f ", indep[0], r[0]);
               jac_solv(_Tape,n,indep,r,2); // Update for new ADOLC
-
+              // Update xn+1 = xn - (xn - xn+1)
               for (i=0; i<n; i++)
                   indep[i] -= r[i];	   
+              //Rprintf("delta x: %f new x: %f NIters: %i\n", r[0], indep[0], NIters);
               }         
 
 		  project(indep, (int)(Trgt)[iTrgt-1+fwdTargetPos_year  *nrow], 
