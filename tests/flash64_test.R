@@ -1,3 +1,4 @@
+# Trying FLash 32 / 64 ADOLC with different OS
 library(FLash)
 
 data(ple4)
@@ -31,7 +32,7 @@ catch(ple4_catch)
 
 # Linux Orig - Is OK
 # Linux new - Is OK
-
+# Windows 64 - Is OK
 
 # Constant catch 2
 future_catch <- 10000
@@ -48,6 +49,7 @@ fbar(ple4_catch)
 
 # Linux Orig - is OK
 # Linux New - is OK
+# Windows 64 - is OK
 
 # Constant catch 3
 future_catch <- c(catch(ple4)[,ac(2000:2008)])
@@ -60,10 +62,10 @@ ctrl_catch <- fwdControl(
 ple4_catch <- fwd(ple4, ctrl_catch, sr = ple4_sr, maxF=5)
 plot(ple4_catch)
 catch(ple4_catch)[,ac(2000:2008)] - future_catch
-fbar(ple4_catch) # fbar maxes out - nonsense
+fbar(ple4_catch)
 
 # Linux Orig - is OK
 # Linux New - is OK
-
+# Windows 64 - is OK
 
 
