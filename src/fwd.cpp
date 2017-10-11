@@ -185,7 +185,7 @@ bool fwd::run(SEXP xTrgt, SEXP xAryTrgt, SEXP xCtrl, SEXP xAryCtrl, SEXP xYrs)
 	         while (norm(r,n) > 1e-10 && NIters++<50)
 	            {
 	            //jac_solv(_tag,n,indep,r,0,2);
-	            jac_solv(_tag,n,indep,r,0); // Update for new ADOLC
+	            jac_solv(_tag,n,indep,r,2); // Update for new ADOLC
 
 	            for (i=0; i<n; i++)
 		             indep[i] -= r[i];	   
