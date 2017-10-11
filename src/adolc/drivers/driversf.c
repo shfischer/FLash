@@ -1,32 +1,22 @@
 /*----------------------------------------------------------------------------
  ADOL-C -- Automatic Differentiation by Overloading in C++
  File:     drivers/driversf.c
- Revision: $Id: driversf.c 134 2009-03-03 14:25:24Z imosqueira $
+ Revision: $Id: driversf.c 638 2015-11-25 12:05:36Z kulshres $
  Contents: Easy to use drivers for optimization and nonlinear equations
            (Implementation of the Fortran callable interfaces).
  
- Copyright (c) 2004
-               Technical University Dresden
-               Department of Mathematics
-               Institute of Scientific Computing
+ Copyright (c) Andrea Walther, Andreas Griewank, Andreas Kowarz, 
+               Hristo Mitev, Sebastian Schlenkrich, Jean Utke, Olaf Vogel
   
- This file is part of ADOL-C. This software is provided under the terms of
- the Common Public License. Any use, reproduction, or distribution of the
- software constitutes recipient's acceptance of the terms of this license.
- See the accompanying copy of the Common Public License for more details.
- 
- History:
-          20040416 kowarz: adapted to configure - make - make install
-          20000228 olvo:   corrected comment at lagra_hess_vec
-          19981130 olvo:   newly created from old wersion (which was splitted)
-          19981126 olvo:   last check (p's & q's)
-          19981020 olvo:   deleted debug messages in tensor
- 
+This file is part of ADOL-C. This software is provided as open source.
+ Any use, reproduction, or distribution of the software constitutes 
+ recipient's acceptance of the terms of the accompanying license file.
+  
 ----------------------------------------------------------------------------*/
-#include "drivers/drivers.h"
-#include "interfaces.h"
-#include "adalloc.h"
-#include "fortutils.h"
+#include <adolc/drivers/drivers.h>
+#include <adolc/interfaces.h>
+#include <adolc/adalloc.h>
+#include <adolc/fortutils.h>
 
 #include <math.h>
 
@@ -44,14 +34,15 @@ fint function_(fint* ftag,
                fdouble* fargument,
                fdouble* fresult) {
     int rc= -1;
-    int tag=*ftag, m=*fm,  n=*fn;
+    short tag= (short) *ftag;
+    int m=*fm,  n=*fn;
     double* argument = myalloc1(n);
     double* result = myalloc1(m);
     spread1(n,fargument,argument);
     rc= function(tag,m,n,argument,result);
     pack1(m,result,fresult);
-    free((char*)argument);
-    free((char*)result);
+    myfree1(argument);
+    myfree1(result);
     return rc;
 }
 
@@ -63,14 +54,15 @@ fint gradient_(fint* ftag,
                fdouble* fargument,
                fdouble* fresult) {
     int rc= -1;
-    int tag=*ftag, n=*fn;
+    short tag= (short) *ftag;
+    int n=*fn;
     double* argument=myalloc1(n);
     double* result=myalloc1(n);
     spread1(n,fargument,argument);
     rc= gradient(tag,n,argument,result);
     pack1(n,result,fresult);
-    free((char*)result);
-    free((char*)argument);
+    myfree1(result);
+    myfree1(argument);
     return rc;
 }
 
@@ -85,7 +77,8 @@ fint vec_jac_(fint* ftag,
               fdouble* flagrange,
               fdouble* frow) {
     int rc= -1;
-    int tag=*ftag, m=*fm, n=*fn, repeat=*frepeat;
+    short tag= (short) *ftag;
+    int m=*fm, n=*fn, repeat=*frepeat;
     double* argument = myalloc1(n);
     double* lagrange = myalloc1(m);
     double* row = myalloc1(n);
@@ -93,9 +86,9 @@ fint vec_jac_(fint* ftag,
     spread1(n,fargument,argument);
     rc= vec_jac(tag,m,n,repeat,argument,lagrange, row);
     pack1(n,row,frow);
-    free((char*)argument);
-    free((char*)lagrange);
-    free((char*)row);
+    myfree1(argument);
+    myfree1(lagrange);
+    myfree1(row);
     return rc;
 }
 
@@ -108,15 +101,15 @@ fint jacobian_(fint* ftag,
                fdouble *fargument,
                fdouble *fjac) {
     int rc= -1;
-    int tag=*ftag, depen=*fdepen, indep=*findep;
+    short tag= (short) *ftag;
+    int depen=*fdepen, indep=*findep;
     double** Jac = myalloc2(depen,indep);
     double* argument = myalloc1(indep);
     spread1(indep,fargument,argument);
     rc= jacobian(tag,depen,indep,argument,Jac);
     pack2(depen,indep,Jac,fjac);
-    free((char*)*Jac);
-    free((char*)Jac);
-    free((char*)argument);
+    myfree2(Jac);
+    myfree1(argument);
     return rc;
 }
 
@@ -130,7 +123,8 @@ fint jac_vec_(fint* ftag,
               fdouble* ftangent,
               fdouble* fcolumn) {
     int rc= -1;
-    int tag=*ftag, m=*fm, n=*fn;
+    short tag= (short) *ftag;
+    int m=*fm, n=*fn;
     double* argument = myalloc1(n);
     double* tangent = myalloc1(n);
     double* column = myalloc1(m);
@@ -138,9 +132,9 @@ fint jac_vec_(fint* ftag,
     spread1(n,fargument,argument);
     rc= jac_vec(tag,m,n,argument,tangent,column);
     pack1(m,column,fcolumn);
-    free((char*)argument);
-    free((char*)tangent);
-    free((char*)column);
+    myfree1(argument);
+    myfree1(tangent);
+    myfree1(column);
     return rc;
 }
 
@@ -152,8 +146,9 @@ fint hess_vec_(fint* ftag,
                fdouble *fargument,
                fdouble *ftangent,
                fdouble *fresult) {
-    int rc= -1;
-    int tag=*ftag, n=*fn;
+    int   rc= -1;
+    short tag= (short) *ftag;
+    int   n=*fn;
     double *argument = myalloc1(n);
     double *tangent = myalloc1(n);
     double *result = myalloc1(n);
@@ -161,9 +156,9 @@ fint hess_vec_(fint* ftag,
     spread1(n,ftangent,tangent);
     rc= hess_vec(tag,n,argument,tangent,result);
     pack1(n,result,fresult);
-    free((char*)argument);
-    free((char*)tangent);
-    free((char*)result);
+    myfree1(argument);
+    myfree1(tangent);
+    myfree1(result);
     return rc;
 }
 
@@ -177,15 +172,15 @@ fint hessian_(fint* ftag,
                             upper half of this matrix remains unchanged */
 {
     int rc= -1;
-    int tag=*ftag, n=*fn;
+    short tag= (short) *ftag;
+    int n=*fn;
     double** H = myalloc2(n,n);
     double* x = myalloc1(n);
     spread1(n,fx,x);
     rc= hessian(tag,n,x,H);
     pack2(n,n,H,fh);
-    free((char*)*H);
-    free((char*)H);
-    free((char*)x);
+    myfree2(H);
+    myfree1(x);
     return rc;
 }
 
@@ -200,7 +195,8 @@ fint lagra_hess_vec_(fint* ftag,
                      fdouble *flagrange,
                      fdouble *fresult) {
     int rc=-1;
-    int tag=*ftag, m=*fm, n=*fn;
+    short tag= (short) *ftag;
+    int m=*fm, n=*fn;
     double *argument = myalloc1(n);
     double *tangent = myalloc1(n);
     double *lagrange = myalloc1(m);
@@ -210,10 +206,10 @@ fint lagra_hess_vec_(fint* ftag,
     spread1(m,flagrange,lagrange);
     rc= lagra_hess_vec(tag,m,n,argument,tangent,lagrange,result);
     pack1(n,result,fresult);
-    free((char*)argument);
-    free((char*)tangent);
-    free((char*)lagrange);
-    free((char*)result);
+    myfree1(argument);
+    myfree1(tangent);
+    myfree1(lagrange);
+    myfree1(result);
     return rc;
 }
 

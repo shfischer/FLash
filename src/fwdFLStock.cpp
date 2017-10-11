@@ -1,7 +1,7 @@
 #define ADOLC TAPELESS
-#include <adouble.h>
-#include "fwdFLStock.h"
-#include "fwd.h"
+#include <adolc/adouble.h>
+#include <fwdFLStock.h>
+#include <fwd.h>
 #include "float.h"
 
 //#include <iostream>
@@ -696,7 +696,8 @@ SEXP fwdStk::run(SEXP xTrgt, SEXP xAry)
               {
               function(_Tape,n,n,indep,r);
 
-              jac_solv(_Tape,n,indep,r,0,2);
+              //jac_solv(_Tape,n,indep,r,0,2);
+              jac_solv(_Tape,n,indep,r,0); // Update for new ADOLC
 
               for (i=0; i<n; i++)
                   indep[i] -= r[i];	   

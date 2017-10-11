@@ -1,22 +1,15 @@
-# Makefile for windows
-# Looks same as *nix one
-PKG_CXXFLAGS = -I../inst/include
+# Makefile for windows - same as *nix one
+PKG_CXXFLAGS = -I../inst/include -std=c++11
 PKG_CFLAGS = -I../inst/include
 PKG_LIBS = $(SUBLIBS)
 
-#CFLAGS=$(PKG_CPPFLAGS) -O3
-#ALL_CPPFLAGS=$(PKG_CPPFLAGS)
-#ALL_CFLAGS=-O3
-#ALL_CXXFLAGS=-O3
-
 MkInclude = $(RHOME)/etc/Makeconf
-CFLAGS = -O0 -ggdb -Wall
-CXXFLAGS = -O0 -ggdb -Wall
+CFLAGS = -O0 -Wall
+CXXFLAGS = -O0 -Wall -fPIC
 
-SOURCES_C = FLCoreClasses.cpp FLashDLL.cpp FLash-VPA.cpp flc.cpp flc_adolc.cpp flquant_pointer.cpp fwd.cpp fwdFLStock.cpp
+SOURCES_CPP = FLCoreClasses.cpp FLashDLL.cpp FLash-VPA.cpp flc.cpp flc_adolc.cpp flquant_pointer.cpp fwd.cpp fwdFLStock.cpp
 
-OBJECTS = $(SOURCES_C:.cpp=.o)
-#DEPS = $(SOURCES_C:.cpp=.d)
+OBJECTS = $(SOURCES_CPP:.cpp=.o)
 
 SUBDIRS = adolc
 SUBLIBS = $(SUBDIRS:=.a)

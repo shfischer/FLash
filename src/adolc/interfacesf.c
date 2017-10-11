@@ -1,33 +1,22 @@
 /*----------------------------------------------------------------------------
  ADOL-C -- Automatic Differentiation by Overloading in C++
  File:     interfacesf.c
- Revision: $Id: interfacesf.c 134 2009-03-03 14:25:24Z imosqueira $
+ Revision: $Id: interfacesf.c 638 2015-11-25 12:05:36Z kulshres $
  Contents: Genuine Fortran callable C Interfaces to ADOL-C forward 
            & reverse calls.
  
- Copyright (c) 2004
-               Technical University Dresden
-               Department of Mathematics
-               Institute of Scientific Computing
+ Copyright (c) Andrea Walther, Andreas Griewank, Andreas Kowarz, 
+               Hristo Mitev, Sebastian Schlenkrich, Jean Utke, Olaf Vogel
   
- This file is part of ADOL-C. This software is provided under the terms of
- the Common Public License. Any use, reproduction, or distribution of the
- software constitutes recipient's acceptance of the terms of this license.
- See the accompanying copy of the Common Public License for more details.
- 
- History:
-          20040423 kowarz: adapted to configure - make - make install
-          20031218 andrea: hos_forward_partx
-          19981201 olvo:   automatic include of "SPARSE/sparse.h"
-          19981130 olvo:   newly created by unification of ADOLC-kernel
-                           routines of adutils?.h
-          19981130 olvo:   newly created from driversc.c
- 
+ This file is part of ADOL-C. This software is provided as open source.
+ Any use, reproduction, or distribution of the software constitutes 
+ recipient's acceptance of the terms of the accompanying license file.
+  
 ----------------------------------------------------------------------------*/
 
-#include "interfaces.h"
-#include "adalloc.h"
-#include "fortutils.h"
+#include <adolc/interfaces.h>
+#include <adolc/adalloc.h>
+#include <adolc/fortutils.h>
 
 BEGIN_C_DECLS
 
@@ -52,12 +41,10 @@ fint hos_forward_(fint* ftag,
     rc= hos_forward(tag,m,n,d,k,base,X,value,Y);
     pack2(m,d,Y,fy);
     pack1(m,value,fvalue);
-    free((char*)*X);
-    free((char*)X);
-    free((char*)*Y);
-    free((char*)Y);
-    free((char*)base);
-    free((char*)value);
+    myfree2(X);
+    myfree2(Y);
+    myfree1(base);
+    myfree1(value);
     return rc;
 }
 
@@ -75,8 +62,8 @@ fint zos_forward_(fint* ftag,
     spread1(n,fbase,base);
     rc=zos_forward(tag,m,n,k,base,value);
     pack1(m,value,fvalue);
-    free((char*)base);
-    free((char*)value);
+    myfree1(base);
+    myfree1(value);
     return rc;
 }
 
@@ -101,14 +88,10 @@ fint hov_forward_(fint* ftag,
     rc= hov_forward(tag,m,n,d,p,base,X,value,Y);
     pack3(m,p,d,Y,fy);
     pack1(m,value,fvalue);
-    free((char*)**X);
-    free((char*)*X);
-    free((char*)X);
-    free((char*)**Y);
-    free((char*)*Y);
-    free((char*)Y);
-    free((char*)base);
-    free((char*)value);
+    myfree3(X);
+    myfree3(Y);
+    myfree1(base);
+    myfree1(value);
     return rc;
 }
 
@@ -132,12 +115,10 @@ fint fov_forward_(fint* ftag,
     rc= fov_forward(tag,m,n,p,base,X,value,Y);
     pack2(m,p,Y,fy);
     pack1(m,value,fvalue);
-    free((char*)*X);
-    free((char*)X);
-    free((char*)*Y);
-    free((char*)Y);
-    free((char*)base);
-    free((char*)value);
+    myfree2(X);
+    myfree2(Y);
+    myfree1(base);
+    myfree1(value);
     return rc;
 }
 
@@ -156,9 +137,8 @@ fint hos_reverse_(fint* ftag,
     spread1(m,fu,u);
     rc=hos_reverse(tag,m,n,d,u,Z);
     pack2(n,d+1,Z,fz);
-    free((char*)*Z);
-    free((char*)Z);
-    free((char*)u);
+    myfree2(Z);
+    myfree1(u);
     return rc;
 }
 
@@ -177,10 +157,8 @@ fint hos_ti_reverse_(
     spread2(m,d+1,fu,U);
     rc=hos_ti_reverse(tag,m,n,d,U,Z);
     pack2(n,d+1,Z,fz);
-    free((char*)*Z);
-    free((char*)Z);
-    free((char*)*U);
-    free((char*)U);
+    myfree2(Z);
+    myfree2(U);
     return rc;
 }
 
@@ -197,8 +175,8 @@ fint fos_reverse_(fint* ftag,
     spread1(m,fu,u);
     rc=fos_reverse(tag,m,n,u,Z);
     pack1(n,Z,fz);
-    free((char*)Z);
-    free((char*)u);
+    myfree1(Z);
+    myfree1(u);
     return rc;
 }
 
@@ -218,11 +196,8 @@ fint hov_reverse_(fint* ftag,
     spread2(q,m,fu,U);
     rc=hov_reverse(tag,m,n,d,q,U,Z,nop);
     pack3(q,n,d+1,Z,fz);
-    free((char*)**Z);
-    free((char*)*Z);
-    free((char*)Z);
-    free((char*)*U);
-    free((char*)U);
+    myfree3(Z);
+    myfree2(U);
     return rc;
 }
 
@@ -243,12 +218,8 @@ fint hov_ti_reverse_(
     spread3(q,m,d+1,fu,U);
     rc=hov_ti_reverse(tag,m,n,d,q,U,Z,nop);
     pack3(q,n,d+1,Z,fz);
-    free((char*)**Z);
-    free((char*)*Z);
-    free((char*)Z);
-    free((char*)**U);
-    free((char*)*U);
-    free((char*)U);
+    myfree3(Z);
+    myfree3(U);
     return rc;
 }
 
@@ -266,10 +237,8 @@ fint fov_reverse_(fint* ftag,
     spread2(q,m,fu,U);
     rc=fov_reverse(tag,m,n,q,U,Z);
     pack2(q,n,Z,fz);
-    free((char*)*Z);
-    free((char*)Z);
-    free((char*)*U);
-    free((char*)U);
+    myfree2(Z);
+    myfree2(U);
     return rc;
 }
 

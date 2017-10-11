@@ -1,29 +1,22 @@
 /*----------------------------------------------------------------------------
  ADOL-C -- Automatic Differentiation by Overloading in C++
  File:     drivers/odedriversf.c
- Revision: $Id: odedriversf.c 134 2009-03-03 14:25:24Z imosqueira $
+ Revision: $Id: odedriversf.c 106 2010-06-29 17:19:50Z kulshres $
  Contents: Easy to use drivers for optimization and nonlinear equations
            (Implementation of the Fortran callable interfaces).
  
- Copyright (c) 2004
-               Technical University Dresden
-               Department of Mathematics
-               Institute of Scientific Computing
+ Copyright (c) Andrea Walther, Andreas Griewank, Andreas Kowarz, 
+               Hristo Mitev, Sebastian Schlenkrich, Jean Utke, Olaf Vogel 
   
- This file is part of ADOL-C. This software is provided under the terms of
- the Common Public License. Any use, reproduction, or distribution of the
- software constitutes recipient's acceptance of the terms of this license.
- See the accompanying copy of the Common Public License for more details.
- 
- History:
-          20040416 kowarz: adapted to configure - make - make install
-          19981130 olvo:   newly created from driversc.c
- 
+ This file is part of ADOL-C. This software is provided as open source.
+ Any use, reproduction, or distribution of the software constitutes 
+ recipient's acceptance of the terms of the accompanying license file.
+
 ----------------------------------------------------------------------------*/
-#include "drivers/odedrivers.h"
-#include "interfaces.h"
-#include "adalloc.h"
-#include "fortutils.h"
+#include <adolc/drivers/odedrivers.h>
+#include <adolc/interfaces.h>
+#include <adolc/adalloc.h>
+#include <adolc/fortutils.h>
 
 #include <math.h>
 
@@ -43,7 +36,8 @@ fint forodec_(fint* ftag,    /* tape identifier */
               fdouble* fy)    /* Taylor series                    */
 {
     int rc= -1;
-    int tag=*ftag, n=*fn, dol=*fdol, deg=*fdeg;
+    short tag= (short) *ftag;
+    int n=*fn, dol=*fdol, deg=*fdeg;
     int i;
     double tau=*ftau;
     double** Y = myalloc2(n,deg+1);

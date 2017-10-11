@@ -1,34 +1,21 @@
 /*----------------------------------------------------------------------------
  ADOL-C -- Automatic Differentiation by Overloading in C++
  File:     drivers/drivers.c
- Revision: $Id: drivers.c 134 2009-03-03 14:25:24Z imosqueira $
+ Revision: $Id: drivers.c 106 2010-06-29 17:19:50Z kulshres $
  Contents: Easy to use drivers for optimization and nonlinear equations
            (Implementation of the C/C++ callable interfaces).
  
- Copyright (c) 2003
-               Technical University Dresden
-               Department of Mathematics
-               Institute of Scientific Computing
+ Copyright (c) Andrea Walther, Andreas Griewank, Andreas Kowarz, 
+               Hristo Mitev, Sebastian Schlenkrich, Jean Utke, Olaf Vogel
   
- This file is part of ADOL-C. This software is provided under the terms of
- the Common Public License. Any use, reproduction, or distribution of the
- software constitutes recipient's acceptance of the terms of this license.
- See the accompanying copy of the Common Public License for more details.
+ This file is part of ADOL-C. This software is provided as open source.
+ Any use, reproduction, or distribution of the software constitutes 
+ recipient's acceptance of the terms of the accompanying license file.
  
- History:
-          20030306 andrea:  change maxinc to MINDEC for rc computation
-          20030303 andrea:  new hess_mat(..), new hessian2(..) 
-          19990622 olvo:    jacobian(..) makes decision whether to use the
-                            forward or reverse mode
 ----------------------------------------------------------------------------*/
-#include "drivers/drivers.h"
-#include "interfaces.h"
-#include "adalloc.h"
-
-//#include "m:/Projects/FLashtest/FLash/inst/include/drivers/drivers.h"
-//#include "m:/Projects/FLashtest/FLash/inst/include/interfaces.h"
-//#include "m:/Projects/FLashtest/FLash/inst/include/adalloc.h"
-
+#include <adolc/drivers/drivers.h>
+#include <adolc/interfaces.h>
+#include <adolc/adalloc.h>
 
 #include <math.h>
 
@@ -55,12 +42,12 @@ int function(short tag,
 /*--------------------------------------------------------------------------*/
 /*                                                                 gradient */
 /* gradient(tag, n, x[n], g[n])                                             */
-static double one = 1.0;
 int gradient(short tag,
              int n,
-             double* argument,
+             const double* argument,
              double* result) {
     int rc= -1;
+    double one = 1.0;
 
     rc = zos_forward(tag,1,n,1,argument,result);
     if(rc < 0)
@@ -80,20 +67,15 @@ int vec_jac(short tag,
             double* lagrange,
             double* row) {
     int rc= -1;
-    static double *y;
-    static int maxm;
-    if(m > maxm) {
-        if(maxm)
-            free((char*)y);
-        y = myalloc1(m);
-        maxm = m;
-    }
+    double *y = NULL;
+
     if(!repeat) {
+        y = myalloc1(m);
         rc = zos_forward(tag,m,n,1, argument, y);
-        if(rc < 0)
-            return rc;
+        if(rc < 0) return rc;
     }
     MINDEC(rc, fos_reverse(tag,m,n,lagrange,row));
+    if (!repeat) myfree1(y);
     return rc;
 }
 
@@ -104,90 +86,58 @@ int vec_jac(short tag,
 int jacobian(short tag,
              int depen,
              int indep,
-             double *argument,
+             const double *argument,
              double **jacobian) {
     int rc;
-    static int nmmax; /* dim for I */
-    static int mmax;  /* dim for result */
-    static double *result, **I;
+    double *result, **I;
 
-    if (depen > mmax) {
-        if (mmax)
-            myfree1(result);
-        result = myalloc1(mmax = depen);
-    }
+    result = myalloc1(depen);
 
     if (indep/2 < depen) {
-        if (indep > nmmax) {
-            if (nmmax)
-                myfreeI2(nmmax,I);
-            I = myallocI2(nmmax = indep);
-        }
+        I = myallocI2(indep);
         rc = fov_forward(tag,depen,indep,indep,argument,I,result,jacobian);
+        myfreeI2(indep, I);
     } else {
-        if (depen > nmmax) {
-            if (nmmax)
-                myfreeI2(nmmax,I);
-            I = myallocI2(nmmax = depen);
-        }
+        I = myallocI2(depen);
         rc = zos_forward(tag,depen,indep,1,argument,result);
-        if (rc < 0)
-            return rc;
+        if (rc < 0) return rc;
         MINDEC(rc,fov_reverse(tag,depen,indep,depen,I,jacobian));
+        myfreeI2(depen, I);
     }
+
+    myfree1(result);
+
     return rc;
 }
 
 /*--------------------------------------------------------------------------*/
-/*                                                           jacobian_partx */
-/* jacobian_partx(tag, m, n, x[n][], J[m][n][])                             */
+/*                                                           large_jacobian */
+/* large_jacobian(tag, m, n, k, x[n], y[m], J[m][n])                        */
 
-int jacobian_partx(short tag,
-                   int depen,
-                   int n,
-                   int *ndim,
-                   double **x,
-                   double ***J) {
-    int rc;
-    static int nmmax; /* dim for jac */
-    static int nmax;  /* dim for argument */
-    static double *argument, **jac;
-    int i,j,k,ind,indep;
+int large_jacobian(short tag,
+		   int depen,
+		   int indep,
+		   int runns,
+		   double *argument,
+		   double *result,
+		   double **jacobian)
+{
+    int rc, dirs, i;
+    double **I;
 
-    indep = 0;
-    for(i=0;i<n;i++)
-        indep += ndim[i];
-
-    if (indep > nmax) {
-        if (nmax)
-            myfree1(argument);
-        argument = myalloc1(nmax = indep);
+	I = myallocI2(indep);
+    if (runns > indep) runns = indep;
+    if (runns < 1)     runns = 1;
+    dirs = indep / runns;
+    if (indep % runns) ++dirs;
+    for (i=0; i<runns-1; ++i) {
+        rc = fov_offset_forward(tag, depen, indep, dirs, i * dirs, argument,
+                I, result, jacobian);
     }
-
-    if (depen*indep > nmmax) {
-        if (nmmax)
-            myfree2(jac);
-        jac = myalloc2(depen,indep);
-        nmmax=depen*indep;
-    }
-    ind = 0;
-    for(i=0;i<n;i++)
-        for(j=0;j<ndim[i];j++) {
-            argument[ind] = x[i][j];
-            ind++;
-        }
-
-    rc = jacobian(tag,depen,indep,argument,jac);
-
-    for(i=0;i<depen;i++) {
-        ind = 0;
-        for(j=0;j<n;j++)
-            for(k=0;k<ndim[j];k++) {
-                J[i][j][k] = jac[i][ind];
-                ind++;
-            }
-    }
-
+    dirs = indep - (runns-1) * dirs;
+    rc = fov_offset_forward(tag, depen, indep, dirs, indep-dirs, argument,
+		     I, result, jacobian);
+    myfreeI2(indep, I);
     return rc;
 }
 
@@ -201,16 +151,12 @@ int jac_vec(short tag,
             double* tangent,
             double* column) {
     int rc= -1;
-    static double *y;
-    static int maxm;
-    if(m > maxm ) {
-        if(maxm)
-            myfree1(y);
-        y = myalloc1(m);
-        maxm = m;
-    }
+    double *y;
+
+    y = myalloc1(m);
 
     rc = fos_forward(tag, m, n, 0, argument, tangent, y, column);
+    myfree1(y);
 
     return rc;
 }
@@ -223,12 +169,13 @@ int hess_vec(short tag,
              double *argument,
              double *tangent,
              double *result) {
+    double one = 1.0;
     return lagra_hess_vec(tag,1,n,argument,tangent,&one,result);
 }
 
 /*--------------------------------------------------------------------------*/
 /*                                                                 hess_mat */
-/* hess_mat(tag, n, q, x[n], V[n][q], W[q][n])                              */
+/* hess_mat(tag, n, q, x[n], V[n][q], W[n][q])                              */
 int hess_mat(short tag,
              int n,
              int q,
@@ -238,40 +185,34 @@ int hess_mat(short tag,
     int rc;
     int i,j;
     double y;
-    static int maxn;
-    static int maxq;
-    static double*** Xppp;
-    static double*** Yppp;
-    static double*** Zppp;
-    static double**  Upp;
+    double*** Xppp;
+    double*** Yppp;
+    double*** Zppp;
+    double**  Upp;
 
-    if ((q > maxq) || (n > maxn)) {
-        if (maxn) {
-            myfree3(Xppp);
-            myfree3(Yppp);
-            myfree3(Zppp);
-        }
-        Xppp = myalloc3(n,q,1);   /* matrix on right-hand side  */
-        Yppp = myalloc3(1,q,1);   /* results of hos_wk_forward  */
-        Zppp = myalloc3(q,n,2);   /* result of Up x H x XPPP */
-    }
+    Xppp = myalloc3(n,q,1);   /* matrix on right-hand side  */
+    Yppp = myalloc3(1,q,1);   /* results of hos_wk_forward  */
+    Zppp = myalloc3(q,n,2);   /* result of Up x H x XPPP */
+    Upp  = myalloc2(1,2);     /* vector on left-hand side */
 
-    if (!Upp)
-        Upp  = myalloc2(1,2);     /* vector on left-hand side */
-
-    for (i=0; i<n; i++)
-        for (j=0;j<q;j++)
+    for (i = 0; i < n; ++i)
+        for (j = 0; j < q; ++j)
             Xppp[i][j][0] = tangent[i][j];
 
     Upp[0][0] = 1;
     Upp[0][1] = 0;
 
-    rc = hov_wk_forward(tag,1,n,1,2,q,argument,Xppp,&y,Yppp);
-    MINDEC(rc,hos_ov_reverse(tag,1,n,1,q,Upp,Zppp));
+    rc = hov_wk_forward(tag, 1, n, 1, 2, q, argument, Xppp, &y, Yppp);
+    MINDEC(rc, hos_ov_reverse(tag, 1, n, 1, q, Upp, Zppp));
 
-    for (i=0; i<q; i++)
-        for (j=0;j<n;j++)
-            result[i][j] = Zppp[i][j][1];
+    for (i = 0; i < q; ++i)
+        for (j = 0; j < n; ++j)
+            result[j][i] = Zppp[i][j][1];
+
+    myfree2(Upp);
+    myfree3(Zppp);
+    myfree3(Yppp);
+    myfree3(Xppp);
 
     return rc;
 }
@@ -288,11 +229,10 @@ int hessian(short tag,
     int i,j;
     double *v = myalloc1(n);
     double *w = myalloc1(n);
-    for(i=0;i<n;i++)
-        v[i] = 0;
+    for(i=0;i<n;i++) v[i] = 0;
     for(i=0;i<n;i++) {
         v[i] = 1;
-        MINDEC(rc,hess_vec(tag,n,argument,v,w));
+        MINDEC(rc, hess_vec(tag, n, argument, v, w));
         if( rc < 0) {
             free((char *)v);
             free((char *) w);
@@ -365,143 +305,25 @@ int lagra_hess_vec(short tag,
     int i;
     int degree = 1;
     int keep = degree+1;
-    static double **X, *y, *y_tangent;
-    static int maxn, maxm;
+    double **X, *y, *y_tangent;
 
-    if (n > maxn || m > maxm) {
-        if (X) {
-            free((char*)*X);
-            free((char*)X);
-        }
-        X = myalloc2(n,2);
-        maxn = n;
-        maxm=m; /* ov20020116 set maxm to m */
-        if (y) free((char*)y);
-        if (y_tangent) free((char*)y_tangent);
-        y         = myalloc1(m);
-        y_tangent = myalloc1(m);
-    }
+    X = myalloc2(n,2);
+    y = myalloc1(m);
+    y_tangent = myalloc1(m);
 
-    rc = fos_forward(tag,m,n,keep, argument, tangent, y, y_tangent);
+    rc = fos_forward(tag, m, n, keep, argument, tangent, y, y_tangent);
 
-    if(rc < 0)
-        return rc;
+    if(rc < 0) return rc;
 
-    for(i=0;i<n;i++) {
-        X[i][0] = argument[i];
-        X[i][1] = tangent[i];
-    }
+    MINDEC(rc, hos_reverse(tag, m, n, degree, lagrange, X));
 
-    MINDEC(rc,hos_reverse(tag,m,n,degree,lagrange,X));
-
-    for(i=0;i<n;i++)
+    for(i = 0; i < n; ++i)
         result[i] = X[i][1];
 
-    return rc;
-}
+    myfree1(y_tangent);
+    myfree1(y);
+    myfree2(X);
 
-
-/****************************************************************************/
-/*                                                       OLD TENSOR DIRVERS */
-
-/*--------------------------------------------------------------------------*/
-void swap( int* i, int* j) {
-    int si;
-    if(*i < *j) {
-        si = *i;
-        *i= *j;
-        *j = si;
-    }
-    ;
-}
-
-int hessloc(int i, int j) {
-    /* swap(i,j); */
-    return i*(i+1)/2 + j;
-}
-
-int tensloc(int i, int j, int k) {
-    /* swap(i,j); swap(j,k); swap(i,j); */
-    return (i*(i+1)*(i+2)/6 + j*(j+1)/2+k);
-}
-
-int tensor( int tag,
-            int m,
-            int n,
-            double* argument,
-            double* functions,
-            double** gradients,
-            double** hessians,     /* in symmetric storage mode */
-            double** tensors       /* in symmetric storage mode */
-          ) {
-    int rc=-1;
-    static int nt,i,j,jj,k,l,li,lj,lij,lji,lli,llij,mm,nn,lijk,ljk,lik;
-    double ***X, ***Y;
-    nt = tensloc(n-1,n-1,n-1)+1;
-    X = myalloc3(n,nt,3);
-    Y = myalloc3(m,nt,3);
-    l = 0;
-    /* Seed the input Taylor Series with the directions (e_i+e_j+e_k)/3 */
-    for(i=0;i<n;i++)
-        for(j=0;j<=i;j++)
-            for(k=0;k<=j;k++) {
-                for(nn=0;nn<n;nn++)
-                    for(jj=0;jj<3;jj++)
-                        X[nn][l][jj] = 0;
-                *X[i][l] += 1.0/3;
-                *X[j][l] += 1.0/3;
-                *X[k][l] += 1.0/3;
-                l++;
-            }
-    /* Propagate the Taylor series in the forward mode */
-    rc=hov_forward(tag,m,n,3,l,argument,X,functions,Y);
-    for(i=0;i<n;i++) {
-        li = tensloc(i,i,i);
-        lli = hessloc(i,i);
-        /* Copy over the pure derivatives along the axes */
-        for(mm=0;mm<m;mm++) {
-            gradients[mm][i] = Y[mm][li][0];
-            hessians[mm][lli] = 2*Y[mm][li][1];
-            tensors[mm][li] = 6*Y[mm][li][2];
-        }
-        lij = tensloc(i,i,0);
-        llij = hessloc(i,0);
-        for(j=0;j<i;j++) {
-            lj = tensloc(j,j,j);
-            lji = tensloc(i,j,j);
-            /* Look at each coordinate plane and interpolate mixed derivatives */
-            for(mm=0;mm<m;mm++) {
-                hessians[mm][llij] = (9*(Y[mm][lij][1]+Y[mm][lji][1])
-                                      -5*(Y[mm][li][1]+Y[mm][lj][1]))/4;
-                tensors[mm][lij] = 9*(2*Y[mm][lij][2]-Y[mm][lji][2])
-                                   +2*Y[mm][lj][2]-5*Y[mm][li][2];
-                tensors[mm][lji] = 9*(2*Y[mm][lji][2]-Y[mm][lij][2])
-                                   +2*Y[mm][li][2]-5*Y[mm][lj][2];
-                *Y[mm][lij] = Y[mm][li][2]+Y[mm][lj][2]
-                              - 4.5*(Y[mm][lij][2]+Y[mm][lji][2]);
-            }
-            lijk = tensloc(i,j,0);
-            lik = tensloc(i,i,0);
-            ljk = tensloc(j,j,0);
-            for(k=0;k<j;k++) {
-                /* Look at each coordinate triple and interpolate mixed derivative */
-                for(mm=0;mm<m;mm++)
-                    tensors[mm][lijk] = 27*Y[mm][lijk][2] + *Y[mm][lij]
-                                        + *Y[mm][lik] + *Y[mm][ljk];
-                lijk++;
-                lik++;
-                ljk ++;
-            }
-            lij++;
-            llij++;
-        }
-    }
-    free((char*)**Y);
-    free((char*)*Y);
-    free((char*)Y);
-    free((char*)**X);
-    free((char*)*X);
-    free((char*)X);
     return rc;
 }
 

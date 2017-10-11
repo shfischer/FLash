@@ -1,4 +1,5 @@
 HEADERS=-I../../../inst/include
+CXXFLAGS = -std=c++11
 
 DRVOBJS=drivers.o driversf.o odedrivers.o odedriversf.o taylor.o
 

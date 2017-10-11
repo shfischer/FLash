@@ -1,5 +1,5 @@
 /** $Id: flc.cpp 547 2010-03-13 12:26:11Z lauriekell $ **/
-#include "flc.h"
+#include <flc.h>
 
 double t1, t2, t3, t4, t5, t6;
 

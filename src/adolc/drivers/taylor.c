@@ -1,41 +1,26 @@
 /*----------------------------------------------------------------------------
  ADOL-C -- Automatic Differentiation by Overloading in C++
  File:     drivers/taylor.c
- Revision: $Id: taylor.c 134 2009-03-03 14:25:24Z imosqueira $
+ Revision: $Id: taylor.c 450 2014-01-21 10:16:57Z awalther $
  Contents: Easy to use drivers for the evaluation of higher order derivative
            tensors and inverse/impicit function differentiation
  
- Copyright (c) 2004
-               Technical University Dresden
-               Department of Mathematics
-               Institute of Scientific Computing
+ Copyright (c) Andrea Walther, Andreas Griewank, Andreas Kowarz, Olaf Vogel
   
- This file is part of ADOL-C. This software is provided under the terms of
- the Common Public License. Any use, reproduction, or distribution of the
- software constitutes recipient's acceptance of the terms of this license.
- See the accompanying copy of the Common Public License for more details.
- 
- History:
-          20040416 kowarz:       adapted to configure - make - make install
-          19990216 olvo/andrea:  mindec in tensor_eval geklammert
-          19981214 olvo/walther: ec Xhelp
-          19981130 olvo:         last check (includes ...)
-          19981120 olvo/walther: return values
-          19980914 olvo:         Jac_solv --> jac_solv
-          19980814 olvo:         integral constant expressions in
-                                 arrays (ANSI-C) 
-          19980806 walther:      (1) access to tensors 
-                                 (2) seems to be finished 
-          19980804 olvo/walther: debugging --> finished?
+ This file is part of ADOL-C. This software is provided as open source.
+ Any use, reproduction, or distribution of the software constitutes 
+ recipient's acceptance of the terms of the accompanying license file.
  
 ----------------------------------------------------------------------------*/
-#include "drivers/taylor.h"
-#include "interfaces.h"
-#include "adalloc.h"
+#include <adolc/drivers/taylor.h>
+#include <adolc/interfaces.h>
+#include <adolc/adalloc.h>
+#include "../taping_p.h"
 
 #include <math.h>
 
 BEGIN_C_DECLS
+
 
 /****************************************************************************/
 /*                                                              STRUCT ITEM */
@@ -45,7 +30,6 @@ struct item {
     double c;              /* value of the coefficient c_{i,j} */
     struct item *next;     /* next item */
 };
-
 
 /****************************************************************************/
 /*                                                     DEALLOCATE COEFFLIST */
@@ -131,14 +115,22 @@ void freetensor( int m, int n, int d, double** tensor ) {
 /****************************************************************************/
 /*                                                           SOME UTILITIES */
 
-long binomi( int a, int b ) {
-    int i;
-    long result = 1;
 
-    for (i=1; i<=b; i++)
-        result = (result*(a-i+1))/i; /* olvo 980804 () */
-    return result;
-};
+long binomi(int n, int k) {
+    long double accum = 1;
+    unsigned int i;
+
+    if (k > n)
+        return 0;
+
+    if (k > n/2)
+        k = n-k;
+
+    for (i = 1; i <= k; i++)
+         accum = accum * (n-k+i) / i;
+
+    return (long) accum + 0.5;
+}
 
 /*--------------------------------------------------------------------------*/
 double dbinomi( double a, int b ) {
@@ -148,7 +140,7 @@ double dbinomi( double a, int b ) {
     for (i=1; i<=b; i++)
         result = result*(a-i+1)/i;
     return result;
-};
+}
 
 /*--------------------------------------------------------------------------*/
 double summand(int p, int d, int* jm, int* km, int order_im, int order_km, long binomiZ) {   /* calculates summation value for fixed j, i, k with terms used in the article.*/
@@ -162,7 +154,7 @@ double summand(int p, int d, int* jm, int* km, int order_im, int order_km, long 
     result *= binomiZ;
     for (i=0; i<p; i++) result *= dbinomi(d*km[i]/(double)order_km, jm[i]);
     return result;
-};
+}
 
 /****************************************************************************/
 /*                                                    EVALUATE COEFFICIENTS */
@@ -210,7 +202,7 @@ void coeff(int p, int d, struct item* coeff_list) {
                         sum += summand(p,d,jm,km,order_im,order_km,binomiZ);
                     };
 
-                if (sum!=0) { /* Store coefficient */
+                if (fabs(sum) > 0) { /* Store coefficient */
                     if (ptr==NULL)
                         ptr = &coeff_list[index_coeff_list];
                     else {
@@ -225,7 +217,7 @@ void coeff(int p, int d, struct item* coeff_list) {
                         {
                             i = u+j;
                             n = im[u];
-                            address += ((j+n)*binomi(i+n,j+n)-j*binomi(i,j))/(1+i-j);
+                            address += ((j+n)*binomi(i+n,j+n)-binomi(i,j)*j)/(1+i-j);
                             j += n;
                         };
                     ptr->a = address;
@@ -253,7 +245,7 @@ void coeff(int p, int d, struct item* coeff_list) {
     free((char*) jm);
     free((char*) im);
     free((char*) km);
-};
+}
 
 
 /*--------------------------------------------------------------------------*/
@@ -268,13 +260,41 @@ void convert( int p, int d, int *im, int *multi ) {
 }
 
 /*--------------------------------------------------------------------------*/
-int address( int d, int* im ) {
-    int i,
-    add = 0;
+int tensor_address( int d, int* multi) {
+    int i, j, max, ind;
+    int add = 0;
+    int *im = (int*) malloc(d*sizeof(int));
+    int *mymulti = (int*) malloc(d*sizeof(int));
+
+    max = 0;
+    ind = d-1;
+    for (i=0; i<d; i++) {
+        mymulti[i] = multi[i];
+        if (mymulti[i] > max)
+            max = mymulti[i];
+        im[i] = 0;
+    }
+
+    for (i=0; i<d; i++) {
+        if (mymulti[i] == max) 
+        { im[ind] = mymulti[i];
+          mymulti[i] = 0;
+          max = 0;
+          ind -= 1;
+          for (j=0; j<d; j++)
+            if (mymulti[j] > max)
+              max = mymulti[j];
+        }
+    }
 
     for (i=0; i<d; i++)
+      {
         add += binomi(im[i]+i,i+1);
-    return add;
+      }
+    free((char*) im);
+    free((char*) mymulti);
+
+    return add; 
 }
 
 
@@ -330,16 +350,6 @@ void multma2vec1( int n, int p, int d, double **X, double **S, int *jm ) {
 
 
 /****************************************************************************/
-/*----------------------------------------------------------------------------
-  From:
-  Olaf Vogel 
-  Institute of Scientific Computing
-  TU Dresden
-  diploma thesis "Zur Berechnung von Rand und Randfaltungen"
-  File:    dvGausz.C
-  LU-Factorisation and triangular backward/forward substitution
-   
-----------------------------------------------------------------------------*/
 
 /* test if zero */
 #define ZERO 1.0E-15
@@ -367,7 +377,7 @@ int LUFactorization( double** J, int n, int* RI, int* CI ) {
                 }
         if (ZERO > v) {
             fprintf(DIAG_OUT,
-                    "Error:LUFactorisation(..): no Pivot in step %d (%le)\n",k+1,v);
+                    "Error:LUFactorisation(..): no Pivot in step %d (%E)\n",k+1,v);
             return -(k+1);
         }
         /* row and column change resp. */
@@ -414,85 +424,91 @@ void GauszSolve( double** J, int n, int* RI, int* CI, double* b ) {
 
 
 /****************************************************************************/
-int jac_solv( unsigned short tag, int n, double* x, double* b,
-              unsigned short sparse, unsigned short mode ) {
-    static double **J;
-    static double **I;
-    static double *y;
-    static double *xold;
-    static int* ri;
-    static int* ci;
-    static int nax,tagold,modeold,cgd;
-    int i,j;
+int jac_solv( unsigned short tag, int n, const double* x, double* b, unsigned short mode ) {
+    double *y;
+    int i, newX = 0;
     int rc = 3;
+    ADOLC_OPENMP_THREAD_NUMBER;
 
-    if ((n != nax) || (tag != tagold)) {
-        if (nax) {
-            free(*J);
-            free(J);
-            free(*I);
-            free(I);
-            free(xold);
-            free(ri);
-            free(ci);
-            free(y);
+    ADOLC_OPENMP_GET_THREAD_NUMBER;
+    y = myalloc1(n);
+    if (n != ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_nax) {
+        if (ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_nax) {
+            free(ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_ci);
+            free(ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_ri);
+            myfree1(ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_xold);
+            myfreeI2(ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_nax,
+                    ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_I);
+            myfree2(ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_J);
         }
-        J = myalloc2(n,n);
-        I = myalloc2(n,n);
-        y = myalloc1(n);
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_J = myalloc2(n,n);
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_I = myallocI2(n);
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_xold = myalloc1(n);
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_ri =
+            (int*)malloc(n*sizeof(int));
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_ci =
+            (int*)malloc(n*sizeof(int));
 
-        xold = myalloc1(n);
-        ri = (int*)malloc(n*sizeof(int));
-        ci = (int*)malloc(n*sizeof(int));
-        for (i=0; i<n; i++) {
-            xold[i] = 0;
-            for (j=0;j<n;j++)
-                I[i][j]=(i==j)?1.0:0.0;
-        }
-        cgd = 1;
-        modeold = 0;
-        nax = n;
-        tagold = tag;
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_modeold = 0;
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_nax = n;
     }
-    if (cgd == 0)
-        for (i=0; i<n; i++)
-            if (x[i] != xold[i])
-                cgd = 1;
-    if (cgd == 1)
-        for (i=0; i<n; i++)
-            xold[i] = x[i];
+    for (i = 0; i < n; ++i)
+        if (x[i] != ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_xold[i]) {
+            ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_xold[i] = x[i];
+            newX = 1;
+        }
     switch(mode) {
-    case 0:
-        MINDEC(rc,zos_forward(tag,n,n,1,x,y));
-        MINDEC(rc,fov_reverse(tag,n,n,n,I,J));
-        break;
-    case 1:
-        if ((modeold == 0) || (cgd == 1)) {
-            MINDEC(rc,zos_forward(tag,n,n,1,x,y));
-            MINDEC(rc,fov_reverse(tag,n,n,n,I,J));
-        }
-        if (LUFactorization(J,n,ri,ci) < 0)
-            return -3;
-        modeold = 1;
-        break;
-    case 2:
-        if ((modeold < 1) || (cgd == 1)) {
-            MINDEC(rc,zos_forward(tag,n,n,1,x,y));
-            MINDEC(rc,fov_reverse(tag,n,n,n,I,J));
-            if (LUFactorization(J,n,ri,ci) < 0)
-                return -3;
-        }
-        GauszSolve(J,n,ri,ci,b);
-        modeold = 2;
-        break;
+        case 0:
+            MINDEC(rc,zos_forward(tag, n, n, 1, x, y));
+            MINDEC(rc,fov_reverse(tag, n, n, n,
+                        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_I,
+                        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_J));
+            break;
+        case 1:
+            MINDEC(rc,zos_forward(tag, n, n, 1, x, y));
+            MINDEC(rc,fov_reverse(tag, n, n, n,
+                            ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_I,
+                            ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_J));
+            if (LUFactorization(
+                        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_J, n,
+                        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_ri,
+                        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_ci) < 0)
+            {
+                rc = -3;
+                break;
+            }
+            ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_modeold = 1;
+            break;
+        case 2:
+            if ((ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_modeold < 1) ||
+                    (newX == 1))
+            {
+                MINDEC(rc,zos_forward(tag, n, n, 1, x, y));
+                MINDEC(rc,fov_reverse(tag, n, n, n,
+                            ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_I,
+                            ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_J));
+                if (LUFactorization(
+                            ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_J, n,
+                            ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_ri,
+                            ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_ci) < 0)
+                {
+                    rc = -3;
+                    break;
+                }
+            }
+            GauszSolve(ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_J, n,
+                    ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_ri,
+                    ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_ci, b);
+            ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.jacSolv_modeold = 2;
+            break;
     }
-    cgd = 0;
+    myfree1(y);
     return rc;
 }
 
 
 /****************************************************************************/
-int inverse_Taylor_prop( unsigned short tag, int n, int d,
+int inverse_Taylor_prop( short tag, int n, int d,
                          double** Y, double** X ) {
     int i,j,l,q;
     static double **I;
@@ -509,12 +525,14 @@ int inverse_Taylor_prop( unsigned short tag, int n, int d,
     short* nz;
     double* Aij;
     double* Xj;
-    int ii, di, da, Di;
+    int ii, di, da, Di, indexA, indexX;
     int rc = 3;
 
     /* Re/Allocation Stuff */
-    if ((n != nax) || (d != dax)) {
-        if (nax) {
+    if ((n != nax) || (d != dax))
+       {
+        if (nax)
+         {
             free(**A);
             free(*A);
             free(A);
@@ -561,18 +579,29 @@ int inverse_Taylor_prop( unsigned short tag, int n, int d,
         for (i=0; i<n; i++)
             if (X[i][0] != xold[i])
                 cgd = 1;
+    for(i=0;i<n;i++)
+      b[i] = 0;
     if (cgd == 1) {
         cgd = 0;
         for (i=0; i<n; i++)
             xold[i] = X[i][0];
-        MINDEC(rc,jac_solv(tag,n,xold,b,0,1));
+        MINDEC(rc,jac_solv(tag,n,xold,b,1));
         if (rc == -3)
             return -3;
     }
     ii = bd;
     for (i=0; i<n; i++)
+      {
         for (j=0; j<d; j++)
-            Xhelp[i][j] = X[i][j+1];
+	{
+            Xhelp[i][j] = 0;
+            X[i][j+1] = 0;
+            W[i][j] = 0;
+	}
+        for (j=0; j<n; j++)
+	  for (l=0; l<=d; l++)
+	    A[i][j][l] = 0;
+      }
 
     while (--ii > 0) {
         di = dd[ii-1]-1;
@@ -585,23 +614,36 @@ int inverse_Taylor_prop( unsigned short tag, int n, int d,
                 if (l == 0)
                     bi = w[i]-Y[i][0];
                 else
-                    bi = W[i][l-1]-Y[i][l];
+		    bi = W[i][l-1]-Y[i][l];
                 for (j=0; j<n; j++)
                     if (nonzero[i][j]>1) {
                         Aij = A[i][j];
+			indexA = l-1;
                         Xj = X[j]+l;
-                        for (q=da; q<l; q++)
+			indexX = 1;
+			if (da == l-1)
+			  {
                             bi += (*(++Aij))*(*(--Xj));
+			  }
+			else
+			  {
+			    for (q=da; q<l; q++)
+			      {
+				bi += (*(++Aij))*(*(--Xj));
+				bi += A[i][j][indexA]*X[j][indexX];
+				indexA--;
+				indexX++;
+			      }
+			  }
                     }
                 b[i] = -bi;
             }
-            MINDEC(rc,jac_solv(tag,n,xold,b,0,2));
-            if (rc == -3)
+            MINDEC(rc,jac_solv(tag,n,xold,b,2));
+           if (rc == -3)
                 return -3;
             for (i=0; i<n; i++) {
-                X[i][l] += b[i];
-                /* 981214 new nl */
-                Xhelp[i][l-1] += b[i];
+	      X[i][l] += b[i];
+	      Xhelp[i][l-1] += b[i];
             }
         }
     }
@@ -610,7 +652,7 @@ int inverse_Taylor_prop( unsigned short tag, int n, int d,
 
 
 /****************************************************************************/
-int inverse_tensor_eval( int tag, int n, int d, int p,
+int inverse_tensor_eval( short tag, int n, int d, int p,
                          double *x, double **tensor, double** S ) {
     static int dim;
     static int dold,pold;
@@ -628,7 +670,7 @@ int inverse_tensor_eval( int tag, int n, int d, int p,
     for(i=0;i<n;i++)
         for(j=0;j<dimten;j++)
             tensor[i][j] = 0;
-    MINDEC(rc,zos_forward(1,n,n,0,x,y));
+    MINDEC(rc,zos_forward(tag,n,n,0,x,y));
     if (d > 0) {
         if ((d != dold) || (p != pold)) {
             if (pold) { /* olvo 980728 */
@@ -647,9 +689,12 @@ int inverse_tensor_eval( int tag, int n, int d, int p,
         Y = myalloc2(n,d+1);
         for (i=0; i<n; i++) {
             X[i][0] = x[i];
-            for (j=1; j<d; j++)
-                X[i][j] = 0;
             Y[i][0] = y[i];
+            for (j=1; j<d; j++)
+	      {
+                X[i][j] = 0;
+                Y[i][j] = 0;
+	      }
         }
         if (d == 1) {
             it[0] = 0;
@@ -685,7 +730,9 @@ int inverse_tensor_eval( int tag, int n, int d, int p,
                 ptr = &coeff_list[i];
                 do {
                     for(j=0;j<n;j++)
+		      {
                         tensor[j][ptr->a] += X[j][ptr->b]*ptr->c;
+		      }
                     ptr = ptr->next;
                 } while (ptr != NULL);
             }
@@ -705,7 +752,7 @@ int inverse_tensor_eval( int tag, int n, int d, int p,
 
 
 /****************************************************************************/
-int tensor_eval( int tag, int m, int n, int d, int p,
+int tensor_eval( short tag, int m, int n, int d, int p,
                  double* x, double **tensor, double **S ) {
     static int bd,dim;
     static int dold,pold;
@@ -724,7 +771,7 @@ int tensor_eval( int tag, int m, int n, int d, int p,
         for (j=0; j<dimten; j++)
             tensor[i][j] = 0;
     if (d == 0) {
-        MINDEC(rc,zos_forward(1,m,n,0,x,y));
+        MINDEC(rc,zos_forward(tag,m,n,0,x,y));
     } else {
         if ((d != dold) || (p != pold)) {
             if (pold) {
@@ -763,10 +810,12 @@ int tensor_eval( int tag, int m, int n, int d, int p,
                     for (k=0; k<bd; k++)
                         do {
                             for (j=0; j<m; j++)
+			      {
                                 tensor[j][ptr[k]->a] += Y[0][j][k]*ptr[k]->c;
-                            ptr[k] = ptr[k]->next;
+			      }
+                           ptr[k] = ptr[k]->next;
                         } while (ptr[k] != NULL);
-                    if (dim-i < bd)
+                    if (dim-i <= bd)
                         bd = dim-i-1;
                     ctr = 0;
                 }
@@ -798,7 +847,7 @@ int tensor_eval( int tag, int m, int n, int d, int p,
                                 tensor[j][ptr[k]->a] += Y[j][k][ptr[k]->b-1]*ptr[k]->c;
                             ptr[k] = ptr[k]->next;
                         } while (ptr[k] != NULL);
-                    if (dim-i < bd)
+                    if (dim-i <= bd)
                         bd = dim-i-1;
                     ctr = 0;
                 }
@@ -846,7 +895,7 @@ void tensor_value( int d, int m, double *y, double **tensor, int *multi ) {
                     max = multi[j];
         }
     }
-    add = address(d,im);
+    add = tensor_address(d,im);
     for (i=0; i<m; i++)
         y[i] = tensor[i][add];
     free((char*) im);

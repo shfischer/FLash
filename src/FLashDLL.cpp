@@ -1,7 +1,7 @@
 #include <math.h>
-#include "fwd.h"
-#include "fwdFLStock.h"
-#include "FLash-VPA.h"
+#include <fwd.h>
+#include <fwdFLStock.h>
+#include <FLash-VPA.h>
 
 #ifdef WIN32
    #define SEXPDLLExport __declspec(dllexport) SEXP __cdecl    

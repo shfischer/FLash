@@ -1,4 +1,4 @@
-#include "flquant_pointer.h"
+#include <flquant_pointer.h>
 
 FLQuant_pointer::FLQuant_pointer(void)      
     {

@@ -1,39 +1,28 @@
 /*----------------------------------------------------------------------------
  ADOL-C -- Automatic Differentiation by Overloading in C++
  File:     interfaces.cpp
- Revision: $Id: interfaces.cpp 134 2009-03-03 14:25:24Z imosqueira $
+ Revision: $Id: interfaces.cpp 542 2014-08-15 14:11:25Z kulshres $
  Contents: Genuine C++ Interfaces to ADOL-C forward & reverse calls.
  
- Copyright (c) 2004
-               Technical University Dresden
-               Department of Mathematics
-               Institute of Scientific Computing
+ Copyright (c) Andrea Walther, Andreas Griewank, Andreas Kowarz, 
+               Hristo Mitev, Sebastian Schlenkrich, Jean Utke, Olaf Vogel
   
- This file is part of ADOL-C. This software is provided under the terms of
- the Common Public License. Any use, reproduction, or distribution of the
- software constitutes recipient's acceptance of the terms of this license.
- See the accompanying copy of the Common Public License for more details.
- 
- History:
-          20040423 kowarz: adapted to configure - make - make install
-          19990715 olvo:   performance tuning
-          19981201 olvo:   newly created from interfaces.C
-          19981126 olvo:   last check (p's & q's) 
-          19980818 olvo:   new: double* myalloc(int)
-          19980731 olvo:   debugging
-          19980729 olvo:   bigger ec
-          19980727 olvo:   ec in reverse U[m][p] ---> U[p][m]
+ This file is part of ADOL-C. This software is provided as open source.
+ Any use, reproduction, or distribution of the software constitutes 
+ recipient's acceptance of the terms of the accompanying license file.
  
 ----------------------------------------------------------------------------*/
 
-#include "interfaces.h"
-#include "adalloc.h"
+#include <adolc/interfaces.h>
+#include <adolc/adalloc.h>
+#include "dvlparms.h"
 
 /****************************************************************************/
 /*                                                                   MACROS */
 #define fabs(x) ((x) > 0 ? (x) : -(x))
 #define ceil(x) ((int)((x)+1) - (int)((x) == (int)(x)))
 
+extern "C" void adolc_exit(int errorcode, const char *what, const char* function, const char *file, int line);
 
 /****************************************************************************/
 /*                                           FORWARD MODE, overloaded calls */
@@ -175,7 +164,7 @@ int forward( short  tag,
         Y[0] = y;
     } else {
         fprintf(DIAG_OUT,"ADOL-C error: wrong Y dimension in forward \n");
-        exit(-1);
+        adolc_exit(-1,"",__func__,__FILE__,__LINE__);
     }
 
     return rc;
@@ -197,7 +186,7 @@ int forward( short  tag,
 
     if (d != 0) {
         fprintf(DIAG_OUT,"ADOL-C error:  wrong X and Y dimensions in forward \n");
-        exit(-1);
+        adolc_exit(-1,"",__func__,__FILE__,__LINE__);
     } else
         rc = zos_forward(tag,m,n,keep,X,Y);
 
@@ -283,7 +272,7 @@ int reverse( short  tag,
 
     if (m != 1) {
         fprintf(DIAG_OUT,"ADOL-C error:  wrong u dimension in scalar-reverse \n");
-        exit(-1);
+        adolc_exit(-1,"",__func__,__FILE__,__LINE__);
     } else
         rc = hos_reverse(tag,m,n,d,&u,Z);
 
@@ -303,7 +292,7 @@ int reverse( short  tag,
 /* reverse(tag, m, n, 0, u[m], Z[n]), d=0                                   */
 { if (d != 0) {
         fprintf(DIAG_OUT,"ADOL-C error:  wrong Z dimension in scalar-reverse \n");
-        exit(-1);
+        adolc_exit(-1,"",__func__,__FILE__,__LINE__);
     }
 
     return fos_reverse(tag,m,n,u,Z);
@@ -324,7 +313,7 @@ int reverse( short  tag,
 
     if (m != 1 || d != 0 ) {
         fprintf(DIAG_OUT,"ADOL-C error:  wrong u or Z dimension in scalar-reverse \n");
-        exit(-1);
+        adolc_exit(-1,"",__func__,__FILE__,__LINE__);
     } else
         rc = fos_reverse(tag,m,n,&u,Z);
     \
@@ -364,7 +353,7 @@ int reverse( short  tag,
 
     if (m != 1) {
         fprintf(DIAG_OUT,"ADOL-C error:  wrong U dimension in vector-reverse \n");
-        exit(-1);
+        adolc_exit(-1,"",__func__,__FILE__,__LINE__);
     } else { /* olvo 980727 ??? */
         /* double** upp = new double*[nrows]; */
         double **upp = (double**) malloc(q*sizeof(double*));
@@ -394,7 +383,7 @@ int reverse( short  tag,
 
     if (d != 0) {
         fprintf(DIAG_OUT,"ADOL-C error:  wrong degree in vector-reverse \n");
-        exit(-1);
+        adolc_exit(-1,"",__func__,__FILE__,__LINE__);
     } else
         rc = fov_reverse(tag,m,n,q,U,Z);
 
@@ -441,7 +430,7 @@ int reverse( short  tag,
 
     if ((m != 1) || (d != 0)) {
         fprintf(DIAG_OUT,"ADOL-C error:  wrong U dimension in vector-reverse \n");
-        exit(-1);
+        adolc_exit(-1,"",__func__,__FILE__,__LINE__);
     } else { /* olvo 980727 ??? */
         /* double ** upp = new double*[nrows]; */
         double **upp = (double**) malloc(q*sizeof(double*));
@@ -470,7 +459,7 @@ int reverse( short  tag,
            If p and U are omitted they default to m and I                   */
 { static int depax;
     static double** I;
-    if (m compsize depax) {
+    if (m adolc_compsize depax) {
         if (depax)
             myfreeI2(depax,I);
         I = myallocI2(depax = m);

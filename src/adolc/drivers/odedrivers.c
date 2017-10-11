@@ -1,29 +1,23 @@
 /*----------------------------------------------------------------------------
  ADOL-C -- Automatic Differentiation by Overloading in C++
  File:     drivers/odedrivers.c
- Revision: $Id: odedrivers.c 134 2009-03-03 14:25:24Z imosqueira $
+ Revision: $Id: odedrivers.c 106 2010-06-29 17:19:50Z kulshres $
  Contents: Easy to use drivers for ordinary differential equations (ODE)
            (with C and C++ callable interfaces including Fortran 
             callable versions).
  
- Copyright (c) 2004
-               Technical University Dresden
-               Department of Mathematics
-               Institute of Scientific Computing
+ Copyright (c) Andrea Walther, Andreas Griewank, Andreas Kowarz, 
+               Hristo Mitev, Sebastian Schlenkrich, Jean Utke, Olaf Vogel 
   
- This file is part of ADOL-C. This software is provided under the terms of
- the Common Public License. Any use, reproduction, or distribution of the
- software constitutes recipient's acceptance of the terms of this license.
- See the accompanying copy of the Common Public License for more details.
- 
- History:
-          20040416 kowarz: adapted to configure - make - make install
-          19981201 olvo:   newly created from driversc.c
- 
+ This file is part of ADOL-C. This software is provided as open source.
+ Any use, reproduction, or distribution of the software constitutes 
+ recipient's acceptance of the terms of the accompanying license file.
+  
 ----------------------------------------------------------------------------*/
-#include "drivers/odedrivers.h"
-#include "interfaces.h"
-#include "adalloc.h"
+#include <adolc/drivers/odedrivers.h>
+#include <adolc/interfaces.h>
+#include <adolc/adalloc.h>
+#include "../taping_p.h"
 
 #include <math.h>
 
@@ -56,26 +50,31 @@ int forodec(short tag,    /* tape identifier */
       **********************************************************************/
 
     int rc= 3;
-    static int i, j, k, nax, dax;
-    static double *y, *z, **Z, taut;
-    if ( n > nax || deg > dax ) {
-        if (nax) {
-            free((char*) *Z);
-            free((char*) Z);
-            free((char*) z);
-            free((char*) y);
+    int i, j, k;
+    double taut;
+    ADOLC_OPENMP_THREAD_NUMBER;
+
+    ADOLC_OPENMP_GET_THREAD_NUMBER;
+
+    if ( n > ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_nax ||
+            deg > ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_dax )
+    {
+        if (ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_nax) {
+            myfree1(ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_y);
+            myfree1(ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_z);
+            myfree2(ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_Z);
         }
-        Z = myalloc2(n,deg);
-        z = myalloc1(n);
-        y = myalloc1(n);
-        nax = n;
-        dax = deg;
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_Z = myalloc2(n, deg);
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_z = myalloc1(n);
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_y = myalloc1(n);
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_nax = n;
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_dax = deg;
     }
 
-    for (i=0;i<n;i++) {
-        y[i] = Y[i][0];
+    for (i = 0; i < n; ++i) {
+        ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_y[i] = Y[i][0];
         /*printf("y[%i] = %f\n",i,y[i]);*/
-        for (k=0;k<deg;k++) {
+        for (k = 0; k < deg; ++k) {
             Y[i][k] = Y[i][k+1];
             /*printf("Y[%i][%i] = %f\n",i,k,Y[i][k]);*/
         }
@@ -83,35 +82,39 @@ int forodec(short tag,    /* tape identifier */
 
     /******  Here we get  going    ********/
     if (dol == 0) {
-        j = dol;                          /* j = 0 */
-        k = (deg)*(j == deg-1 ) ;         /* keep death values in prepration */
-        MINDEC(rc,zos_forward(tag,n,n,k, y, z));
+        j = dol;                        /* j = 0 */
+        k = (deg) * (j == deg-1 ) ;     /* keep death values in prepration */
+        MINDEC(rc, zos_forward(tag, n, n, k,
+                    ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_y,
+                    ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_z));
         /* for  reverse called by jacode   */
-        if( rc < 0)
-            return rc;
-        taut = tau/(1+j);                 /* only the last time through.     */
-        for (i=0;i<n;i++)
-            Y[i][j] = taut*z[i];
-        dol++;                            /* !!! */
+        if(rc < 0) return rc;
+        taut = tau / (1 + j);           /* only the last time through.     */
+        for (i = 0; i < n; ++i)
+            Y[i][j] = taut * ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_z[i];
+        dol++;                          /* !!! */
     }
-    for (j=dol;j<deg;j++) {
-        k = (deg)*(j == deg-1 ) ;         /* keep death values in prepration */
-        MINDEC(rc,hos_forward(tag,n,n,j,k, y, Y, z, Z));
+    for (j = dol; j < deg; ++j) {
+        k = (deg)*(j == deg-1) ;        /* keep death values in prepration */
+        MINDEC(rc, hos_forward(tag, n, n, j, k,
+                    ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_y,
+                    Y, ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_z,
+                    ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_Z));
         /* for  reverse called by jacode   */
-        if( rc < 0)
-            return rc;
-        taut = tau/(1+j);             /* only the last time through.     */
-        for (i=0;i<n;i++)
-            Y[i][j] = taut*Z[i][j-1];
+        if( rc < 0) return rc;
+        taut = tau / (1 + j);           /* only the last time through.     */
+        for (i = 0; i < n; ++i)
+            Y[i][j] = taut *
+                ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_Z[i][j-1];
     }
     /******  Done                  ********/
 
-    for (i=0;i<n;i++) {
-        for (k=deg;k>0;k--) {
+    for (i = 0; i < n; ++i) {
+        for (k = deg; k > 0; --k) {
             Y[i][k] = Y[i][k-1];
             /*printf("Y[%i][%i] = %f\n",i,k,Y[i][k]);*/
         }
-        Y[i][0] = y[i];
+        Y[i][0] = ADOLC_CURRENT_TAPE_INFOS.pTapeInfos.forodec_y[i];
         /*printf("Y[%i][0] = %f\n",i,Y[i][0]);*/
     }
 
@@ -208,7 +211,7 @@ void accodec(int n,              /* space dimension */
                                 isum =1;
                                 if(nzip > 1 )   /* the A[i][p][m>0] may be nonzero*/
                                     for(m=k-1; m>-nzpj;m--)
-                                        sum += *(++Aip)*(*(--Bpj));
+				      sum += (*(++Aip))*(*(--Bpj));
                             }
                         }
                         if(isum)         /* we found something nonzero after all*/
@@ -226,7 +229,7 @@ void accodec(int n,              /* space dimension */
                         Aip = A[i][p];
                         Bpj = B[p][j]+k-1;
                         for(m=k; m>0 ;m--)
-                            sum += *(Aip++)*(*Bpj--);
+			  sum += (*(Aip++))*(*Bpj--);
                         B[i][j][k] = sum*scale;
                     }
                 }

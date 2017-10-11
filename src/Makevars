@@ -1,4 +1,5 @@
-PKG_CXXFLAGS = -I../inst/include
+# Make file
+PKG_CXXFLAGS = -I../inst/include -std=c++11
 PKG_CFLAGS = -I../inst/include
 PKG_LIBS = $(SUBLIBS)
 
@@ -6,15 +7,15 @@ MkInclude = $(RHOME)/etc/Makeconf
 CFLAGS = -O0 -Wall
 CXXFLAGS = -O0 -Wall -fPIC
 
-SOURCES_C = FLCoreClasses.cpp FLashDLL.cpp FLash-VPA.cpp flc.cpp flc_adolc.cpp flquant_pointer.cpp fwd.cpp fwdFLStock.cpp
+SOURCES_CPP = FLCoreClasses.cpp FLashDLL.cpp FLash-VPA.cpp flc.cpp flc_adolc.cpp flquant_pointer.cpp fwd.cpp fwdFLStock.cpp
 
-OBJECTS = $(SOURCES_C:.cpp=.o)
+OBJECTS = $(SOURCES_CPP:.cpp=.o)
 
 SUBDIRS = adolc
 SUBLIBS = $(SUBDIRS:=.a)
 
 all: $(SHLIB)
-$(SHLIB): sublibs $(OBJECTS)
+    $(SHLIB): sublibs $(OBJECTS)
 
 sublibs: subclean
 	@for d in $(SUBDIRS); do \
