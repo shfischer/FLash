@@ -1,5 +1,5 @@
 ##Truncated VPA analysis
-#José De Oliveira
+#Jose De Oliveira
 
 
 setGeneric('truncVPA', function(object, ...)

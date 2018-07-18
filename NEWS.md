@@ -1,13 +1,5 @@
-# CHANGES IN FLash VERSION 2.6
-
-## NEW FEATURES
+# FLash 2.5.9
 
 ## USER-VISIBLE CHANGES
 
-## BUG FIXES
-
-## UTILITIES
-
-## DOCUMENTATION
-
-## DEPRECATED & DEFUNCT
+- FLash is now 64 bit, as the version of the AdolC library used to compile has been updated.

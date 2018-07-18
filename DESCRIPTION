@@ -1,6 +1,6 @@
 Package: FLash
 Title: Forecasting and projection of fish stocks
-Version: 2.5.8
+Version: 2.5.9
 Date: 2017-08-28
 Authors@R: c(
   person("Laurence T.", "Kell", email = "laurie.kell@iccat.int", role = c("cre", "aut")))

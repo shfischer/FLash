@@ -1,6 +1,6 @@
 ##Pseudocohort analysis
 #Tim Earl, August 2010
-#Adapted by José De Oliveira to work with FLR, and to account for dynamic plusgroup
+#Adapted by Jose De Oliveira to work with FLR, and to account for dynamic plusgroup
 
 #Reference:
 # http://www.fao.org/docrep/w5449e/w5449e00.htm
