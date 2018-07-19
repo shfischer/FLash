@@ -1,15 +1,14 @@
-# Make file
-PKG_CXXFLAGS = -I../inst/include -std=c++11
+PKG_CXXFLAGS = -I../inst/include $(CXX11STD)
+
 PKG_CFLAGS = -I../inst/include
 PKG_LIBS = $(SUBLIBS)
 
 MkInclude = $(RHOME)/etc/Makeconf
-CFLAGS = -O0 -Wall
-CXXFLAGS = -O0 -Wall -fPIC
 
 SOURCES_CPP = FLCoreClasses.cpp FLashDLL.cpp FLash-VPA.cpp flc.cpp flc_adolc.cpp flquant_pointer.cpp fwd.cpp fwdFLStock.cpp
+SOURCES_C = init.c
 
-OBJECTS = $(SOURCES_CPP:.cpp=.o)
+OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_CPP:.cpp=.o) 
 
 SUBDIRS = adolc
 SUBLIBS = $(SUBDIRS:=.a)
