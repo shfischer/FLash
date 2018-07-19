@@ -1,0 +1,14 @@
+---
+title: FLash
+author: Iago Mosqueira (EC JRC) <iago.mosqueira@ec.europa.eu>
+date: 2017-09-22
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{FLash}
+  %\VignetteEncoding{UTF-8}
+tags: FLR
+license: Creative Commons Attribution-ShareAlike 4.0 International Public License
+---
+
+PLEASE visit the tutorials on [Running Medium Term Forecasts with FLash](http://www.flr-project.org/doc/Running_Medium_Term_Forecasts_with_FLash.html) and [Short Term Forecasting for advice using FLash](http://www.flr-project.org/doc/Short_Term_Forecasting_for_advice_using_FLash.html) at the [FLR website](http://flr-project.org).

@@ -4,9 +4,16 @@
 #include <R_ext/Rdynload.h>
 #include <R_ext/Visibility.h>
 
+#ifdef WIN32
+   #include <windows.h>
+   #define SEXPDLLExport __declspec(dllexport) SEXP __cdecl    
+#else
+   #define SEXPDLLExport SEXP    
+#endif
+
 /* .Call calls */
-extern SEXP CalcF(SEXP, SEXP, SEXP);
-extern SEXP fwd_adolc_FLStock(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXPDLLExport CalcF(SEXP, SEXP, SEXP);
+extern SEXPDLLExport fwd_adolc_FLStock(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
   {"CalcF", (DL_FUNC) &CalcF, 3},

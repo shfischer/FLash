@@ -16,7 +16,7 @@ validFwdControl <- function(object){
      warning("rows in target & trgtArray don't match")
      return(FALSE)}
 
-  if (any(object@target[,"quantity"] %in% names(quantity))){
+  if (any(object@target[,"quantity"] %in% quantityNms)){
      warning("quantity not recognised")
      return(FALSE)}
 

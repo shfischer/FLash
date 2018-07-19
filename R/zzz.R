@@ -7,8 +7,8 @@
 # Distributed under the terms of the European Union Public Licence (EUPL) V.1.1.
 
 .onLoad <- function(libname, pkgname ) {
-#  if(.Platform$OS.type == "windows" & .Platform$r_arch != "x64")
-#	  stop("This version of FLash on Windows can only run on 64-bit R. Please change and retry.")
-	cat("The Creator Has a Mastertape\n")
+ if(.Platform$OS.type == "windows" & .Platform$r_arch != "x64")
+ stop("This version of FLash on Windows can only run on 64-bit R.")
+#	cat("The Creator Has a Mastertape\n")
 }
 

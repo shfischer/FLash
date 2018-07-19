@@ -151,7 +151,7 @@ SRcode2char<-function(strCode){
                          "34"   = "ricker.sv",    
                          "35"   = "ricker.ndc",    
                          "36"   = "ricker.ar1",    
-                         "0"    = default)         
+                         default= 0)         
 
    return(res)
    }

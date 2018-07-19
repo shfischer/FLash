@@ -169,7 +169,7 @@ setMethod("fwd", signature(object="FLStock", fishery="missing", control="FLQuant
     function(object, control, sr =NULL,
       sr.residuals=FLQuant(1,dimnames=dimnames(rec(object))), sr.residuals.mult=TRUE,
       availability=NULL,maxF=2.0){
-    res=FLStocks(mlply(seq(length(control)),
+    res=FLStocks(lapply(seq(length(control)),
           function(x,object,control,sr,sr.residuals,sr.residuals.mult,availability,maxF) {
             fwd(object,control=control[[x]],quantity=names(control)[x],
                 sr=sr,sr.residuals=sr.residuals,sr.residuals.mult=sr.residuals.mult,
