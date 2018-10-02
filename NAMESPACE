@@ -21,6 +21,7 @@ exportMethods(
   "fwdControl",
   "+",
   "show",
+  "stf",
   "setSR")
 export(
   "CheckNor1",
