@@ -1,3 +1,9 @@
+# FLash 2.5.10
+
+## USER-VISIBLE CHANGES
+
+- stf() method has been moved from FLAssess to FLash
+
 # FLash 2.5.9
 
 ## USER-VISIBLE CHANGES

@@ -1,7 +1,7 @@
 
 # FLash
-- Version: 2.5.9
-- Date: 2017-08-28
+- Version: 2.5.10
+- Date: 2017-10-02
 - Author: Laurie Kell <laurie@seaplusplus.co.uk>
 - Maintainer: Laurie Kell <laurie@seaplusplus.co.uk>
 - Repository: <https://github.com/flr/FLash/>
