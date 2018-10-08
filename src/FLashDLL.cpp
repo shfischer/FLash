@@ -225,8 +225,8 @@ extern "C" SEXPDLLExport AdaptFuncAD(SEXP xStock, SEXP xFitPlusGroup, SEXP xFrat
    for (iage=q.minquant(); iage<=q.maxquant(); iage++)
      for (iyr=index.minyr(); iyr<=index.maxyr(); iyr++)
        {
-       adouble _N = VPA.N_ad(iage,iyr)*q_ad(iage,q.minyr(),1,1,1,1); 
-       ss_ad += pow((index(iage,iyr)-_N)/_N,2.0);
+       adouble N = VPA.N_ad(iage,iyr)*q_ad(iage,q.minyr(),1,1,1,1); 
+       ss_ad += pow((index(iage,iyr)-N)/N,2.0);
        } 
    //end calculate objective function
 
@@ -280,8 +280,8 @@ extern "C" SEXPDLLExport AdaptGrad(SEXP xStock, SEXP xFitPlusGroup, SEXP xFratio
       for (iage=q.minquant(); iage<=q.maxquant(); iage++)
            for (iage=q.minquant(), i=0; iage<=q.maxquant(); iage++, i++)
            {
-           adouble _N = VPA.N_ad(iage,iyr)*q_ad(iage,q.minyr(),1,1,1,1); 
-           ss_ad += pow((index(iage,iyr)-_N)/_N,2.0);
+           adouble N = VPA.N_ad(iage,iyr)*q_ad(iage,q.minyr(),1,1,1,1); 
+           ss_ad += pow((index(iage,iyr)-N)/N,2.0);
            } 
 
       ss_ad /= (index.minquant()-index.minquant()+1)*(index.maxquant()-index.minquant()+1);
@@ -355,8 +355,8 @@ extern "C" SEXPDLLExport AdaptSetupTape(SEXP xStock, SEXP xFitPlusGroup, SEXP xF
       for (iyr=index.minyr(); iyr<=index.maxyr(); iyr++)
          for (iage=q.minquant(); iage<=q.maxquant(); iage++)
            {
-           adouble _N = VPA.N_ad(iage,iyr)*q_ad(iage,q.minyr(),1,1,1,1); 
-           ss_ad += pow((index(iage,iyr)-_N)/_N,2.0);
+           adouble N = VPA.N_ad(iage,iyr)*q_ad(iage,q.minyr(),1,1,1,1); 
+           ss_ad += pow((index(iage,iyr)-N)/N,2.0);
            } 
 
       ss_ad /= (index.minquant()-index.minquant()+1)*(index.maxquant()-index.minquant()+1);
