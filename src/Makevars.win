@@ -20,7 +20,7 @@ all: $(SHLIB)
 
 sublibs: subclean
 	@for d in $(SUBDIRS); do \
-	  (cd $${d} && CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" MkInclude="$(MkInclude)" $(MAKE) library) || exit 1; \
+	  (cd $${d} && CC="$(CC)" CXX="$(CXX)" AR="$(AR)" CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" MkInclude="$(MkInclude)" $(MAKE) library) || exit 1; \
 	done
 
 clean: subclean
