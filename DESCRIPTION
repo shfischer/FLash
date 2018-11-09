@@ -1,7 +1,7 @@
 Package: FLash
 Title: Forecasting and Projection of Fish Stocks
-Version: 2.5.10
-Date: 2017-10-02
+Version: 2.5.11
+Date: 2017-11-09
 Authors@R: c(
   person("Laurence T.", "Kell", email = "laurie@kell.es", role = c("cre", "aut")))
 Description: Projecting the future dynamics of fish stocks is an essential part of fisheries scientce and management advice. The FLash package carries out forecasts of fish stocks (FLStock objects) according to a defined table of targets and limits (fwdControl) and applying and specified stock-recruitment relationship.
@@ -24,4 +24,4 @@ Collate:
   pseuco.R
   truncVPA.R
 License: GPL-2
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
