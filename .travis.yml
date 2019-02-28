@@ -29,10 +29,10 @@ before_deploy:
   - 'export RELEASE=$(grep -o \\. <<< $PKGVER | wc -w)'
   - "echo $RELEASE"
   # Build binary and remove the source archive
-  - "R CMD INSTALL --build ggplotFL_$PKGVER.tar.gz"
-  - "rm ggplotFL_$PKGVER.tar.gz"
+  - "R CMD INSTALL --build FLash_$PKGVER.tar.gz"
+  - "rm FLash_$PKGVER.tar.gz"
   # Look for packages
-  - "export RELEASE_PKG_FILE=$(ls ggplotFL*gz)"
+  - "export RELEASE_PKG_FILE=$(ls FLash*gz)"
   - "echo $RELEASE_PKG_FILE"
 
 deploy:
@@ -43,6 +43,6 @@ deploy:
   skip_cleanup: true
   draft: true
   on:
-    repo: flr/ggplotFL
+    repo: flr/FLash
     # condition: "$RELEASE=2"
     # condition: $RELEASE =~ ^[0-9]+\.[0-9]+\.[0-9]+
